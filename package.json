@@ -1,0 +1,21 @@
+{
+  "name": "tim",
+  "version": "0.0.0",
+  "description": "time is money - time tracking & invoice hacking",
+  "bin": {
+    "tim": "bin/cmd.js"
+  },
+  "dependencies": {
+    "json-stable-stringify": "^1.0.0",
+    "minimist": "0.0.10",
+    "mkdirp": "^0.3.5",
+    "strftime": "~0.6.2",
+    "sequelize": "^3.6.0",
+    "nconf": "^0.7.2" 
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Meik Specht <meik@schnitzelspecht.de> (http://www.schnitzelspecht.de)",
+  "license": "ISC"
+}
