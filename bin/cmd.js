@@ -142,10 +142,10 @@ function proc(argv) {
 					return 0;
 				}
 
-				//console.log(printf("%5s | %15s | %15s | %6s | %10s", "ID", "Name", "Street 1", "Zip", "City"));
+				console.log(printf("%-5s | %-15s | %-15s | %-6s | %-10s", "ID", "Name", "Street 1", "Zip", "City"));
 				clients.forEach(function(client) {
-					console.log(client.name);
-					//console.log(printf("%5s | %15s | %15s | %6s | %10s", client.id, client.name, client.street1, client.zip, client.city));
+					//console.log(client.name);
+					console.log(printf("%-5s | %-15s | %-15s | %-6s | %-10s", client.id, client.name, client.street1, client.zip, client.city));
 				});
 			});
 		}
