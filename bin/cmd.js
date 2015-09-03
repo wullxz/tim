@@ -96,7 +96,6 @@ function test(create) {
 			zip: "12345",
 			city: "Musterstadt"
 		});
-		Client.destroy({where: {id: {$gt: 2}}});
 		console.log('saved client data!\n');
 	}
 
@@ -144,13 +143,30 @@ function proc(argv) {
 
 				console.log(printf("%-5s | %-15s | %-15s | %-6s | %-10s", "ID", "Name", "Street 1", "Zip", "City"));
 				clients.forEach(function(client) {
-					//console.log(client.name);
 					console.log(printf("%-5s | %-15s | %-15s | %-6s | %-10s", client.id, client.name, client.street1, client.zip, client.city));
 				});
 			});
 		}
 	}
-	else if (argv.t) {
+	else if (verb === 'add') {
+		var type = argv._[1];
+		if (type === 'client') {
+			if (typeof argv.name === 'undefined' || argv.name.trim() === "") {
+				console.log("Please supply at least a name for the new customer!");
+				process.exit(-1);
+			}
+			Client.create({
+				name: argv.name,
+				street1: argv.street1 || "",
+				zip: argv.zip+"" || "",
+				city: argv.city || "",
+				street2: argv.street2 || ""
+			})
+
+
+		}
+	}
+	else if (verb === 'test') {
 		test(argv.t);
 	}
 	else {
