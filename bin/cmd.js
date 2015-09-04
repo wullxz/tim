@@ -17,7 +17,7 @@ var printf = require('sprintf-js').sprintf;
 var Client = null, Invoice = null, TrackedTime = null;
 
 var argv = minimist(process.argv.slice(2), {
-	alias: { v: 'verbose', h: 'help', c: 'client', s: 'search', t: 'test' }
+	alias: { v: 'verbose', h: 'help', c: 'client', s: 'short', t: 'test' }
 });
 
 // create data directory and config
@@ -43,15 +43,13 @@ function openDb(callback, cbargs) {
 		street1: Seq.STRING,
 		street2: Seq.STRING,
 		zip: Seq.STRING(7),
-		city: Seq.STRING
+		city: Seq.STRING,
+		short: { type: Seq.STRING(10), unique: true, allowNull: true }
 	});
 
 	Invoice = db.define('Invoice', {
 		date: Seq.DATE
 	});
-
-	// set relations
-	Invoice.hasMany(Client);
 
 	TrackedTime = db.define('TrackedTime', {
 		start: Seq.DATE,
@@ -60,8 +58,18 @@ function openDb(callback, cbargs) {
 		description: Seq.TEXT
 	});
 
-	// set relations
-	TrackedTime.hasMany(Client);
+	InvoicePosition = db.define('InvoicePosition', {
+		name: Seq.STRING(100),
+		qty: Seq.DOUBLE,
+		value: Seq.DOUBLE,
+		desc: Seq.STRING
+	});
+
+	// relations
+	Client.hasMany(Invoice);
+	Client.hasMany(TrackedTime);
+	Invoice.hasMany(InvoicePosition);
+	InvoicePosition.hasMany(TrackedTime);
 
 	// ########## model definition end!  #####
 
@@ -147,6 +155,23 @@ function proc(argv) {
 				});
 			});
 		}
+		if (argv.s) {
+			Client.findAll({
+				where: {
+					short: argv.s
+				}
+			}).then( function (clients) {
+				if (typeof clients == 'undefined' || ! clients) {
+					console.log('No clients with that short key found!\n');
+					return 0;
+				}
+
+				console.log(printf("%-5s | %-15s | %-15s | %-6s | %-10s", "ID", "Name", "Street 1", "Zip", "City"));
+				clients.forEach(function(client) {
+					console.log(printf("%-5s | %-15s | %-15s | %-6s | %-10s", client.id, client.name, client.street1, client.zip, client.city));
+				});
+			});
+		}
 	}
 	else if (verb === 'add') {
 		var type = argv._[1];
@@ -160,10 +185,9 @@ function proc(argv) {
 				street1: argv.street1 || "",
 				zip: argv.zip+"" || "",
 				city: argv.city || "",
-				street2: argv.street2 || ""
+				street2: argv.street2 || "",
+				short: argv.short || null
 			})
-
-
 		}
 	}
 	else if (verb === 'test') {
