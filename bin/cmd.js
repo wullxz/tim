@@ -12,18 +12,19 @@ var stringify = require('json-stable-stringify');
 var os = require('os');
 var tmpdir = (os.tmpdir || os.tmpDir)();
 var printf = require('sprintf-js').sprintf;
+var readline = require('readline');
 
 // db model vars
 var Client = null, Invoice = null, TrackedTime = null;
 
 var argv = minimist(process.argv.slice(2), {
-	alias: { v: 'verbose', h: 'help', c: 'client', s: 'short', t: 'test' }
+	alias: { v: 'verbose', h: 'help', c: 'client', s: 'short', t: 'title', d: 'description' }
 });
 
 // create data directory and config
 var dbopen = false;
 var HOME = process.env.HOME || process.env.USERPROFILE;
-var datadir = argv.d || path.join(HOME, '.tim');
+var datadir = argv.datadir || path.join(HOME, '.tim');
 mkdirp.sync(datadir);
 var confpath = path.join(datadir, 'settings.json');
 var conf;
@@ -32,7 +33,7 @@ conf = (conf.isFile()) ? fs.readFileSync(confpath, { encoding: 'utf8' }).toStrin
 conf = (conf.trim() === "") ? {} : JSON.parse(conf);
 
 //TODO: make this setting accessable for the user in order to let him save it in dropbox or so
-var dblogging = false;
+var dblogging = console.log;
 var db = new Seq('main', null, null, { host: 'localhost', dialect: 'sqlite', storage: path.join(datadir, 'db.sqlite'), logging: dblogging});
 
 
@@ -59,7 +60,7 @@ function openDb(callback, cbargs) {
 	});
 
 	InvoicePosition = db.define('InvoicePosition', {
-		name: Seq.STRING(100),
+		title: Seq.STRING(100),
 		qty: Seq.DOUBLE,
 		value: Seq.DOUBLE,
 		desc: Seq.STRING
@@ -134,45 +135,37 @@ function proc(argv) {
 	if (argv.h) {
 		usage(0);
 	}
+	// search something on the database
+	// for now you can only search clients
 	else if (verb === 'search') {
+		var spattern = "";
+		var stype = "";
 		if (argv.c) {
-			console.log('searching for client: ' + argv.c);
-			Client.findAll({
-				where: {
-					name: {
-						$like: '%' + argv.c + '%'
-					}
-				}
-			}).then( function (clients) {
-				if (typeof clients == 'undefined' || ! clients) {
-					console.log('No clients with that name found!\n');
-					return 0;
-				}
-
-				console.log(printf("%-5s | %-15s | %-15s | %-6s | %-10s", "ID", "Name", "Street 1", "Zip", "City"));
-				clients.forEach(function(client) {
-					console.log(printf("%-5s | %-15s | %-15s | %-6s | %-10s", client.id, client.name, client.street1, client.zip, client.city));
-				});
-			});
+			spattern = argv.c;
+			stype = "name";
 		}
-		if (argv.s) {
-			Client.findAll({
-				where: {
-					short: argv.s
-				}
-			}).then( function (clients) {
-				if (typeof clients == 'undefined' || ! clients) {
-					console.log('No clients with that short key found!\n');
-					return 0;
-				}
-
-				console.log(printf("%-5s | %-15s | %-15s | %-6s | %-10s", "ID", "Name", "Street 1", "Zip", "City"));
-				clients.forEach(function(client) {
-					console.log(printf("%-5s | %-15s | %-15s | %-6s | %-10s", client.id, client.name, client.street1, client.zip, client.city));
-				});
-			});
+		else if (argv.s) {
+			spattern = argv.s;
+			stype = "short";
 		}
+		else {
+			console.log("Please specify a client name with -c|--client or a short key with -s|--short!");
+			return;
+		}
+
+		getClient(spattern, stype, function (clients) {
+				if (typeof clients == 'undefined' || ! clients) {
+				console.log('No clients with that name or short-code found!\n');
+				return 0;
+			}
+
+			console.log(printf("%-5s | %-15s | %-15s | %-6s | %-10s", "ID", "Name", "Street 1", "Zip", "City"));
+			clients.forEach(function(client) {
+				console.log(printf("%-5s | %-15s | %-15s | %-6s | %-10s", client.id, client.name, client.street1, client.zip, client.city));
+			});
+		});
 	}
+	// add a client to the database
 	else if (verb === 'add') {
 		var type = argv._[1];
 		if (type === 'client') {
@@ -190,6 +183,45 @@ function proc(argv) {
 			})
 		}
 	}
+	// start time measurement
+	else if (verb === 'start') {
+		var spattern = "";
+		var stype = "";
+		if (argv.c) {
+			spattern = argv.c;
+			stype = "name";
+		}
+		else if (argv.s) {
+			spattern = argv.s;
+			stype = "short";
+		}
+		else {
+			console.log("Please specify a client name with -c|--client or a short key with -s|--short!");
+			return;
+		}
+
+		getClient(spattern, stype, function(clients) {
+				if (typeof clients === 'undefined' || clients === null) {
+					console.log("No clients with that search pattern found!");
+					process.exit(-1);
+				}
+
+				console.log('\nClient object in proc function:\n' + JSON.stringify(clients, null, 2));
+
+				if (clients.length > 1) {
+					console.log("there's more than one client in the result set!");
+					process.exit(-1);
+				}
+				else {
+					if (argv.start) {
+						start = argv.start;
+					}
+					else
+						start = new Date();
+					startTimeTrack(clients, argv.t, argv.d, start);
+				}
+		});
+	}
 	else if (verb === 'test') {
 		test(argv.t);
 	}
@@ -198,6 +230,70 @@ function proc(argv) {
 	}
 }
 
+/**
+ * starts timetracking for a specific client.
+ * mandatory parameters:
+ * - client
+ * - title
+ */
+function startTimeTrack(client, title, description, start) {
+	if (typeof client === 'undefined' || client === null)
+		throw "Please specify a client to track the time for!";
+	if (typeof title === 'undefined' || title === null)
+		throw "You need to specify a title!";
+	description = typeof description !== 'undefined' ? description : null;
+	start = typeof start !== 'undefined' ? start : new Date();
+	if (!(start instanceof Date))
+		throw "This is not a valid Date";
+
+	console.log('\nClient object:\n', JSON.stringify(client, null, 2));
+	client.createTrackedTimes({
+	//TrackedTime.create({
+		start: start,
+		end: null,
+		title: title,
+		description: description
+	}).then(function (tt) {
+		console.log(tt.get({plain: true}));
+	});
+}
+
+/**
+ * gets clients based on search-pattern (spattern) and search-type (stype)
+ * and passes the results to callback
+ */
+function getClient(spattern, stype, callback) {
+	// search for client name
+	if (stype==='name') {
+		Client.findAll({
+			where: {
+				name: {
+					$like: '%' + argv.c + '%'
+				}
+			}
+		}).then( function (clients) {
+			callback(clients);
+		});
+	}
+	// search for short code
+	else if (stype==='short') {
+		Client.findOne({
+			where: {
+				short: argv.s
+			}
+		}).then( function (clients) {
+			callback(clients);
+		});
+	}
+	else {
+		console.log("Not a valid search option: " + stype);
+		process.exit(-1);
+	}
+}
+
+/**
+ * saves the configuration
+ */
 function saveConfig() {
 	fs.writeFileSync(confpath, JSON.stringify(conf), { encoding: 'utf8' }, function (err) {
 		if (err) throw err;
@@ -205,6 +301,9 @@ function saveConfig() {
 	});
 }
 
+/**
+ * prints usage information for tim
+ */
 function usage(arg) {
 	console.log("TODO!");
 	process.exit(arg);
