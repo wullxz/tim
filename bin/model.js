@@ -5,6 +5,12 @@ module.exports = function (dbpath, debugOutput) {
 	var sqlite3 = require('sqlite3').verbose();
 	model.db = new sqlite3.Database(dbpath);
 
+	/**
+	 * Create the initial structure for the database:
+	 * - tables
+	 * - indices
+	 * - foreign-keys
+	 */
 	model.initDb = function() {
 		//TODO: init database structure
 		function createClients(callback) {
@@ -118,11 +124,23 @@ module.exports = function (dbpath, debugOutput) {
 		});
 	};
 
+	/**
+	 * Clients model
+	 */
+
+	 //TODO: create client model 
+
+	/**
+	 * convenience method to write multiline SQL queries
+	 */
 	function qB (str, line) {
 		str = str + "\n" + line;
 		return str;
 	}
 
+	/**
+	 * convenience method to write output only if debugging is enabled for this module
+	 */
 	function debugOut(msg) {
 		if (debug)
 		console.log(msg);
