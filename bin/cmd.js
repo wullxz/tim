@@ -17,6 +17,7 @@ var readline = require('readline');
 // db model vars
 var Client = null, Invoice = null, TrackedTime = null;
 
+// parse commandline args
 var argv = minimist(process.argv.slice(2), {
 	alias: { v: 'verbose', h: 'help', c: 'client', s: 'short', t: 'title', d: 'description' }
 });
@@ -34,8 +35,7 @@ conf = (conf.trim() === "") ? {} : JSON.parse(conf);
 
 //TODO: make this setting accessable for the user in order to let him save it in dropbox or so
 var dblogging = console.log;
-var db = new Seq('main', null, null, { host: 'localhost', dialect: 'sqlite', storage: path.join(datadir, 'db.sqlite'), logging: dblogging});
-
+var m = require('./model.js')(path.join(datadir, 'db.sqlite'), true);
 
 function openDb(callback, cbargs) {
 	// ########## model definition here! #####
@@ -91,45 +91,46 @@ function openDb(callback, cbargs) {
 }
 
 function test(create) {
-	if (create==='create') {
-		console.log('saving some clients now...');
-		Client.create({
-			name: "Max Mustermann",
-			street1: "Somestreet 123",
-			zip: "12345",
-			city: "Musterstadt"
-		})
-		Client.create({
-			name: "Ulla Musterfrau",
-			street1: "Sesamstraße 123",
-			zip: "12345",
-			city: "Musterstadt"
-		});
-		console.log('saved client data!\n');
-	}
-
-	console.log('outputting client data:');
-	Client.findAll().then(function (clients) {
-		if (typeof clients == 'undefined' || ! clients) {
-			console.log('error fetching clients!\n');
-			return -1;
-		}
-		clients.forEach(function(client) {
-			console.log('found client: ' + client.name);
-			console.log('address: ' + client.street1 + " - " + client.zip + " " + client.city);
-			console.log('---------------------------------');
-		});
-	});
+	m.initDb();
+//	if (create==='create') {
+//		console.log('saving some clients now...');
+//		Client.create({
+//			name: "Max Mustermann",
+//			street1: "Somestreet 123",
+//			zip: "12345",
+//			city: "Musterstadt"
+//		})
+//		Client.create({
+//			name: "Ulla Musterfrau",
+//			street1: "Sesamstraße 123",
+//			zip: "12345",
+//			city: "Musterstadt"
+//		});
+//		console.log('saved client data!\n');
+//	}
+//
+//	console.log('outputting client data:');
+//	Client.findAll().then(function (clients) {
+//		if (typeof clients == 'undefined' || ! clients) {
+//			console.log('error fetching clients!\n');
+//			return -1;
+//		}
+//		clients.forEach(function(client) {
+//			console.log('found client: ' + client.name);
+//			console.log('address: ' + client.street1 + " - " + client.zip + " " + client.city);
+//			console.log('---------------------------------');
+//		});
+//	});
 }
 
 /**
  *  processes commandline args
  */
 function proc(argv) {
-	if (!dbopen) {
-		openDb(proc, argv);
-		return;
-	}
+//	if (!dbopen) {
+//		openDb(proc, argv);
+//		return;
+//	}
 
 	var verb = argv._[0];
 	if (argv.h) {
