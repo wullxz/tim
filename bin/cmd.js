@@ -6,7 +6,7 @@ var path = require('path');
 var mkdirp = require('mkdirp');
 var minimist = require('minimist');
 var sqlite = require('sqlite3');
-var Seq = require('sequelize'); // db package
+//var Seq = require('sequelize'); // db package
 var strftime = require('strftime');
 var stringify = require('json-stable-stringify');
 var os = require('os');
@@ -92,45 +92,45 @@ function openDb(callback, cbargs) {
 
 function test(create) {
 	m.initDb();
-//	if (create==='create') {
-//		console.log('saving some clients now...');
-//		Client.create({
-//			name: "Max Mustermann",
-//			street1: "Somestreet 123",
-//			zip: "12345",
-//			city: "Musterstadt"
-//		})
-//		Client.create({
-//			name: "Ulla Musterfrau",
-//			street1: "Sesamstraße 123",
-//			zip: "12345",
-//			city: "Musterstadt"
-//		});
-//		console.log('saved client data!\n');
-//	}
-//
-//	console.log('outputting client data:');
-//	Client.findAll().then(function (clients) {
-//		if (typeof clients == 'undefined' || ! clients) {
-//			console.log('error fetching clients!\n');
-//			return -1;
-//		}
-//		clients.forEach(function(client) {
-//			console.log('found client: ' + client.name);
-//			console.log('address: ' + client.street1 + " - " + client.zip + " " + client.city);
-//			console.log('---------------------------------');
-//		});
-//	});
+	//	if (create==='create') {
+	//		console.log('saving some clients now...');
+	//		Client.create({
+	//			name: "Max Mustermann",
+	//			street1: "Somestreet 123",
+	//			zip: "12345",
+	//			city: "Musterstadt"
+	//		})
+	//		Client.create({
+	//			name: "Ulla Musterfrau",
+	//			street1: "Sesamstraße 123",
+	//			zip: "12345",
+	//			city: "Musterstadt"
+	//		});
+	//		console.log('saved client data!\n');
+	//	}
+	//
+	//	console.log('outputting client data:');
+	//	Client.findAll().then(function (clients) {
+	//		if (typeof clients == 'undefined' || ! clients) {
+	//			console.log('error fetching clients!\n');
+	//			return -1;
+	//		}
+	//		clients.forEach(function(client) {
+	//			console.log('found client: ' + client.name);
+	//			console.log('address: ' + client.street1 + " - " + client.zip + " " + client.city);
+	//			console.log('---------------------------------');
+	//		});
+	//	});
 }
 
 /**
  *  processes commandline args
  */
 function proc(argv) {
-//	if (!dbopen) {
-//		openDb(proc, argv);
-//		return;
-//	}
+	//	if (!dbopen) {
+	//		openDb(proc, argv);
+	//		return;
+	//	}
 
 	var verb = argv._[0];
 	if (argv.h) {
@@ -139,32 +139,41 @@ function proc(argv) {
 	// search something on the database
 	// for now you can only search clients
 	else if (verb === 'search') {
-		var spattern = "";
-		var stype = "";
-		if (argv.c) {
-			spattern = argv.c;
-			stype = "name";
-		}
-		else if (argv.s) {
-			spattern = argv.s;
-			stype = "short";
-		}
-		else {
-			console.log("Please specify a client name with -c|--client or a short key with -s|--short!");
-			return;
-		}
-
-		getClient(spattern, stype, function (clients) {
-				if (typeof clients == 'undefined' || ! clients) {
-				console.log('No clients with that name or short-code found!\n');
-				return 0;
+		var target = argv._[1];
+		// search clients
+		if (target === 'client') {
+			var spattern = "";
+			var stype = "";
+			if (argv.c || argv.name) {
+				spattern = (argv.c) ? argv.c : argv.name;
+				console.log("searching for: " + spattern);
+				stype = "name";
+			}
+			else if (argv.s) {
+				spattern = argv.s;
+				stype = "short";
+			}
+			else {
+				console.log("Please specify a client name with -c|--client or a short key with -s|--short!");
+				return;
 			}
 
-			console.log(printf("%-5s | %-15s | %-15s | %-6s | %-10s", "ID", "Name", "Street 1", "Zip", "City"));
-			clients.forEach(function(client) {
-				console.log(printf("%-5s | %-15s | %-15s | %-6s | %-10s", client.id, client.name, client.street1, client.zip, client.city));
+			getClient(spattern, stype, function (err, clients) {
+				if (err) {
+					console.log(err);
+					process.exit(-1);
+				}
+				if (typeof clients == 'undefined' || ! clients) {
+					console.log('No clients with that name or short-code found!\n');
+					return 0;
+				}
+
+				console.log(printf("%-5s | %-15s | %-20s | %-6s | %-10s | %-10s", "ID", "Name", "Street 1", "Zip", "City", "Shortkey"));
+				clients.forEach(function(client) {
+					console.log(printf("%-5s | %-15s | %-20s | %-6s | %-10s | %-10s", client.id, client.name, client.street1, client.zip, client.city, client.short));
+				});
 			});
-		});
+		}
 	}
 	// add a client to the database
 	else if (verb === 'add') {
@@ -174,14 +183,17 @@ function proc(argv) {
 				console.log("Please supply at least a name for the new customer!");
 				process.exit(-1);
 			}
-			Client.create({
-				name: argv.name,
-				street1: argv.street1 || "",
-				zip: argv.zip+"" || "",
-				city: argv.city || "",
-				street2: argv.street2 || "",
-				short: argv.short || null
-			})
+			m.Client.create({
+				$name: argv.name,
+				$street1: argv.street1 || "",
+				$zip: argv.zip+"" || "",
+					$city: argv.city || "",
+					$street2: argv.street2 || "",
+						$short: argv.short || null
+			});
+		}
+		else {
+			console.log("invalid option for add");
 		}
 	}
 	// start time measurement
@@ -201,26 +213,29 @@ function proc(argv) {
 			return;
 		}
 
-		getClient(spattern, stype, function(clients) {
-				if (typeof clients === 'undefined' || clients === null) {
-					console.log("No clients with that search pattern found!");
-					process.exit(-1);
-				}
+		getClient(spattern, stype, function(err, clientr) {
+			if (err) {
+				console.log(err);
+				process.exist(-1);
+			}
 
-				console.log('\nClient object in proc function:\n' + JSON.stringify(clients, null, 2));
+			if (typeof clients === 'undefined' || clients === null) {
+				console.log("No clients with that search pattern found!");
+				process.exit(-1);
+			}
 
-				if (clients.length > 1) {
-					console.log("there's more than one client in the result set!");
-					process.exit(-1);
+			if (clients.length > 1) {
+				console.log("there's more than one client in the result set!");
+				process.exit(-1);
+			}
+			else {
+				if (argv.start) {
+					start = argv.start;
 				}
-				else {
-					if (argv.start) {
-						start = argv.start;
-					}
-					else
-						start = new Date();
-					startTimeTrack(clients, argv.t, argv.d, start);
-				}
+				else
+					start = new Date();
+				startTimeTrack(clients, argv.t, argv.d, start);
+			}
 		});
 	}
 	else if (verb === 'test') {
@@ -248,15 +263,7 @@ function startTimeTrack(client, title, description, start) {
 		throw "This is not a valid Date";
 
 	console.log('\nClient object:\n', JSON.stringify(client, null, 2));
-	client.createTrackedTimes({
-	//TrackedTime.create({
-		start: start,
-		end: null,
-		title: title,
-		description: description
-	}).then(function (tt) {
-		console.log(tt.get({plain: true}));
-	});
+	console.log("TODO!");
 }
 
 /**
@@ -266,25 +273,11 @@ function startTimeTrack(client, title, description, start) {
 function getClient(spattern, stype, callback) {
 	// search for client name
 	if (stype==='name') {
-		Client.findAll({
-			where: {
-				name: {
-					$like: '%' + argv.c + '%'
-				}
-			}
-		}).then( function (clients) {
-			callback(clients);
-		});
+		m.Client.findByName({ $name: spattern	}, callback)
 	}
 	// search for short code
 	else if (stype==='short') {
-		Client.findOne({
-			where: {
-				short: argv.s
-			}
-		}).then( function (clients) {
-			callback(clients);
-		});
+		m.Client.findByKey({ $short: spattern }, callback);
 	}
 	else {
 		console.log("Not a valid search option: " + stype);
@@ -306,7 +299,8 @@ function saveConfig() {
  * prints usage information for tim
  */
 function usage(arg) {
-	console.log("TODO!");
+	if (arg) console.log("invalid command!");
+	console.log("Usage - TODO!");
 	process.exit(arg);
 }
 
