@@ -221,7 +221,7 @@ function proc(argv) {
 			return;
 		}
 
-		getClient(spattern, stype, function(err, clientr) {
+		getClient(spattern, stype, function(err, clients) {
 			if (err) {
 				console.log(err);
 				process.exist(-1);
@@ -237,9 +237,8 @@ function proc(argv) {
 				process.exit(-1);
 			}
 			else {
-				if (argv.start) {
+				if (argv.start)
 					start = argv.start;
-				}
 				else
 					start = new Date();
 				startTimeTrack(clients, argv.t, argv.d, start);
@@ -274,7 +273,12 @@ function startTimeTrack(client, title, description, start) {
 		throw "This is not a valid Date";
 
 	console.log('\nClient object:\n', JSON.stringify(client, null, 2));
-	console.log("TODO!");
+	m.Time.start(client, title, description, start, function (err) {
+		if (err)
+			throw err;
+		else
+			console.log("insert successful!");
+	});
 }
 
 /**

@@ -161,6 +161,7 @@ module.exports = function (dbpath, debugOutput) {
 			if (callback) callback(err);
 		});
 	}
+
 	model.Client.findByName = function(pattern, callback) {
 		var st = db.prepare("SELECT * FROM Clients where name LIKE '%'||$name||'%'");
 		var n = null;
@@ -183,8 +184,24 @@ module.exports = function (dbpath, debugOutput) {
 		});
 	}
 
+	/**
+	 * Time model
+	 */
+
 	model.Time = function () {
 
+	}
+
+	model.Time.start = function (client, title, description, start, callback) {
+		var st = db.prepare("INSERT INTO Times (fk_timesclient, title, description, start) VALUES ($client, $title, $description, $start);");
+
+		var params = { $client: client.id, $title: title, $description: description, $start: start };
+		st.run(params, function(err) {
+			if (err)
+				throw err;
+			else
+				console.log(this);
+		});
 	}
 
 	/*
@@ -204,7 +221,7 @@ module.exports = function (dbpath, debugOutput) {
 	 */
 	function debugOut(msg) {
 		if (debug)
-			console.log(msg);
+			console.log("[DEBUG] " + msg);
 	}
 
 	return model;
