@@ -178,7 +178,7 @@ module.exports = function (dbpath, debugOutput) {
 
 	model.Client.findByKey = function (key, callback) {
 		var st = db.prepare("SELECT * FROM Clients where short = $short");
-		st.get(key, function (err, rows) {
+		st.all(key, function (err, rows) {
 			callback(err, rows);
 		});
 	}

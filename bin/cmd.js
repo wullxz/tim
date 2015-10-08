@@ -136,10 +136,14 @@ function proc(argv) {
 	if (argv.h) {
 		usage(0);
 	}
+
+	// ##### SEARCH ##### 
 	// search something on the database
 	// for now you can only search clients
 	else if (verb === 'search') {
 		var target = argv._[1];
+		if (target === 'help')
+			return usage('search', false);
 		// search clients
 		if (target === 'client') {
 			var spattern = "";
@@ -154,8 +158,8 @@ function proc(argv) {
 				stype = "short";
 			}
 			else {
-				console.log("Please specify a client name with -c|--client or a short key with -s|--short!");
-				return;
+				//console.log("Please specify a client name with -c|--client or a short key with -s|--short!");
+				return usage('search', true);
 			}
 
 			getClient(spattern, stype, function (err, clients) {
@@ -175,6 +179,7 @@ function proc(argv) {
 			});
 		}
 	}
+	// ##### ADD #####
 	// add a client to the database
 	else if (verb === 'add') {
 		var type = argv._[1];
@@ -196,10 +201,13 @@ function proc(argv) {
 			console.log("invalid option for add");
 		}
 	}
+	// ###### START ####
 	// start time measurement
 	else if (verb === 'start') {
 		var spattern = "";
 		var stype = "";
+
+		// get search type for client
 		if (argv.c) {
 			spattern = argv.c;
 			stype = "name";
@@ -238,11 +246,14 @@ function proc(argv) {
 			}
 		});
 	}
+
+	// ##### TEST ####
+	// for testing stuff
 	else if (verb === 'test') {
 		test(argv.t);
 	}
 	else {
-		usage(-1);
+		usage(null, true);
 	}
 }
 
@@ -277,6 +288,7 @@ function getClient(spattern, stype, callback) {
 	}
 	// search for short code
 	else if (stype==='short') {
+		console.log("searching client by shortkey:");
 		m.Client.findByKey({ $short: spattern }, callback);
 	}
 	else {
@@ -298,10 +310,39 @@ function saveConfig() {
 /**
  * prints usage information for tim
  */
-function usage(arg) {
-	if (arg) console.log("invalid command!");
-	console.log("Usage - TODO!");
-	process.exit(arg);
+function usage(arg, invalid) {
+	// parse arguments
+	invalid = typeof invalid === 'undefined' ? false : invalid;
+	if (invalid) console.log("Invalid command!");
+
+	// define usage strings
+	var usage = new Array();
+
+	// help for search keyword
+	usage['search'] = new Array();
+	usage['search'][0] = "\ttim search client (-c|--client pattern)|(-s|--short key)";
+
+	// help for add keyword
+	usage['add'] = new Array(),
+	usage['add'][0] = "\ttim add client -c|--client ClientName [--street1 value] [--street2 value] [--zip zip] [--city city] [--short shortkey]";
+
+	// output usage / help
+	console.log("Usage - incomplete but please go ahead and read what's already there:\n");
+	if (arg && usage[arg] != undefined) {
+		console.log("Usage for tim " + arg + ":");
+		usage[arg].forEach(function (val) {
+			console.log(val);
+		});
+	}
+	else {
+		for (var usg in usage) {
+			usage[usg].forEach(function (val) {
+				console.log(val);
+			});
+		}
+	}
+
+	process.exit(invalid ? -1 : 0);
 }
 
 proc(argv);
