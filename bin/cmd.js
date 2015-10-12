@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+var debug = true;
+
 // include packages
 var fs = require('fs');
 var path = require('path');
@@ -7,8 +9,6 @@ var mkdirp = require('mkdirp');
 var minimist = require('minimist');
 var sqlite = require('sqlite3');
 //var Seq = require('sequelize'); // db package
-var strftime = require('strftime');
-var stringify = require('json-stable-stringify');
 var os = require('os');
 var tmpdir = (os.tmpdir || os.tmpDir)();
 var printf = require('sprintf-js').sprintf;
@@ -35,7 +35,7 @@ conf = (conf.trim() === "") ? {} : JSON.parse(conf);
 
 //TODO: make this setting accessable for the user in order to let him save it in dropbox or so
 var dblogging = console.log;
-var m = require('./model.js')(path.join(datadir, 'db.sqlite'), true);
+var m = require('./model.js')(path.join(datadir, 'db.sqlite'), debug);
 
 function openDb(callback, cbargs) {
 	// ########## model definition here! #####
@@ -137,7 +137,7 @@ function proc(argv) {
 		usage(0);
 	}
 
-	// ##### SEARCH ##### 
+	// ##### SEARCH #####
 	// search something on the database
 	// for now you can only search clients
 	else if (verb === 'search') {
@@ -150,7 +150,6 @@ function proc(argv) {
 			var stype = "";
 			if (argv.c || argv.name) {
 				spattern = (argv.c) ? argv.c : argv.name;
-				console.log("searching for: " + spattern);
 				stype = "name";
 			}
 			else if (argv.s) {
@@ -172,9 +171,9 @@ function proc(argv) {
 					return 0;
 				}
 
-				console.log(printf("%-5s | %-15s | %-20s | %-6s | %-10s | %-10s", "ID", "Name", "Street 1", "Zip", "City", "Shortkey"));
+				console.log(printf("%-5s | %-15s | %-20s | %-6s | %-20s | %-10s", "ID", "Name", "Street 1", "Zip", "City", "Shortkey"));
 				clients.forEach(function(client) {
-					console.log(printf("%-5s | %-15s | %-20s | %-6s | %-10s | %-10s", client.id, client.name, client.street1, client.zip, client.city, client.short));
+					console.log(printf("%-5s | %-15s | %-20s | %-6s | %-20s | %-10s", client.id, client.name, stripNull(client.street1), stripNull(client.zip), stripNull(client.city), stripNull(client.short)));
 				});
 			});
 		}
@@ -198,7 +197,7 @@ function proc(argv) {
 			});
 		}
 		else {
-			console.log("invalid option for add");
+			usage('add', true);
 		}
 	}
 	// ###### START ####
@@ -233,15 +232,12 @@ function proc(argv) {
 			}
 
 			if (clients.length > 1) {
+				//TODO: ask which client to use
 				console.log("there's more than one client in the result set!");
 				process.exit(-1);
 			}
 			else {
-				if (argv.start)
-					start = argv.start;
-				else
-					start = new Date();
-				startTimeTrack(clients, argv.t, argv.d, start);
+				timeTrack(clients, argv.t, argv.d, argv.start);
 			}
 		});
 	}
@@ -262,23 +258,31 @@ function proc(argv) {
  * - client
  * - title
  */
-function startTimeTrack(client, title, description, start) {
+function timeTrack(client, title, description, date, action) {
+	action = typeof action === 'undefined' ? "start" : action;
 	if (typeof client === 'undefined' || client === null)
 		throw "Please specify a client to track the time for!";
 	if (typeof title === 'undefined' || title === null)
 		throw "You need to specify a title!";
 	description = typeof description !== 'undefined' ? description : null;
-	start = typeof start !== 'undefined' ? start : new Date();
-	if (!(start instanceof Date))
+
+	// parse date here
+	date = typeof date !== 'undefined' ? new Date(date) : new Date();
+	if (!(date instanceof Date || date.toString() === "Invalid Date"))
 		throw "This is not a valid Date";
 
-	console.log('\nClient object:\n', JSON.stringify(client, null, 2));
-	m.Time.start(client, title, description, start, function (err) {
-		if (err)
-			throw err;
-		else
-			console.log("insert successful!");
-	});
+	debuglog('\nClient object:\n', JSON.stringify(client, null, 2));
+	if (action === 'start') {
+		m.Time.start(client, title, description, date, function (err) {
+			if (err)
+				throw err;
+			else
+				console.log("insert successful!");
+		});
+	}
+	else if (action === 'stop') {
+		//TODO implement
+	}
 }
 
 /**
@@ -288,11 +292,12 @@ function startTimeTrack(client, title, description, start) {
 function getClient(spattern, stype, callback) {
 	// search for client name
 	if (stype==='name') {
+		debuglog("searching client by name: " + spattern);
 		m.Client.findByName({ $name: spattern	}, callback)
 	}
 	// search for short code
 	else if (stype==='short') {
-		console.log("searching client by shortkey:");
+		debuglog("searching client by shortkey:" + spattern);
 		m.Client.findByKey({ $short: spattern }, callback);
 	}
 	else {
@@ -347,6 +352,18 @@ function usage(arg, invalid) {
 	}
 
 	process.exit(invalid ? -1 : 0);
+}
+
+function debuglog(str) {
+	if (debug)
+		console.log("[DEBUG] " + str);
+}
+
+function stripNull(str) {
+	if (typeof str === 'undefined' || str === null)
+		return "";
+	else
+		return str;
 }
 
 proc(argv);

@@ -1,5 +1,5 @@
-module.exports = function (dbpath, debugOutput) {
-	var debug = debugOutput || false;
+module.exports = function (dbpath, debugput) {
+	var debug = debugput || false;
 	var model = {};
 	var async = require('async');
 	var sqlite3 = require('sqlite3').verbose();
@@ -24,12 +24,12 @@ module.exports = function (dbpath, debugOutput) {
 			cli = qB(cli, "		short TEXT UNIQUE);");
 			model.db.run(cli, [], function(err, result) {
 				if (err) {
-					debugOut("Error running query:\n" + cli + "\n\nErrors:\n" + err);
+					debuglog("Error running query:\n" + cli + "\n\nErrors:\n" + err);
 				}
 				else
-					debugOut("Query successful!");
+					debuglog("Query successful!");
 				if (result)
-					debugOut("Results:\n" + result);
+					debuglog("Results:\n" + result);
 
 				callback(null, "Clients");
 			});
@@ -39,11 +39,11 @@ module.exports = function (dbpath, debugOutput) {
 			var cliU = "CREATE UNIQUE INDEX IF NOT EXISTS clientShort ON Clients(short);";
 			model.db.run(cliU, [], function(err, result) {
 				if (err)
-					debugOut("Error running query:\n" + cliU + "\n\nErrors:\n" + err);
+					debuglog("Error running query:\n" + cliU + "\n\nErrors:\n" + err);
 				else
-					debugOut("Query successful!");
+					debuglog("Query successful!");
 				if (result)
-					debugOut("Results:\n" + result);
+					debuglog("Results:\n" + result);
 
 				callback();
 			});
@@ -58,11 +58,11 @@ module.exports = function (dbpath, debugOutput) {
 			invoices = qB(invoices, "		FOREIGN KEY(fk_invoiceclient) REFERENCES Clients(id));");
 			model.db.run(invoices, [], function(err, result) {
 				if (err)
-					debugOut("Error running query:\n" + invoices + "\n\nErrors:\n" + err);
+					debuglog("Error running query:\n" + invoices + "\n\nErrors:\n" + err);
 				else
-					debugOut("Query successful!");
+					debuglog("Query successful!");
 				if (result)
-					debugOut("Results:\n" + result);
+					debuglog("Results:\n" + result);
 
 				callback();
 			});
@@ -79,11 +79,11 @@ module.exports = function (dbpath, debugOutput) {
 			invoicepos = qB(invoicepos, "		FOREIGN KEY(fk_invoiceposinvoice) REFERENCES Invoice(id));");
 			model.db.run(invoicepos, [], function(err, result) {
 				if (err)
-					debugOut("Error running query:\n" + invoicepos + "\n\nErrors:\n" + err);
+					debuglog("Error running query:\n" + invoicepos + "\n\nErrors:\n" + err);
 				else
-					debugOut("Query successful!");
+					debuglog("Query successful!");
 				if (result)
-					debugOut("Results:\n" + result);
+					debuglog("Results:\n" + result);
 
 				callback();
 			});
@@ -103,17 +103,17 @@ module.exports = function (dbpath, debugOutput) {
 			times = qB(times, "		FOREIGN KEY(fk_timesinvoicepos) REFERENCES InvoicePos(id));");
 			model.db.run(times, [], function(err, result) {
 				if (err)
-					debugOut("Error running query:\n" + times + "\n\nErrors:\n" + err);
+					debuglog("Error running query:\n" + times + "\n\nErrors:\n" + err);
 				else
-					debugOut("Query successful!");
+					debuglog("Query successful!");
 				if (result)
-					debugOut("Results:\n" + result);
+					debuglog("Results:\n" + result);
 
 				callback();
 			});
 		}
 
-		debugOut("Run all CREATE queries:\n");
+		debuglog("Run all CREATE queries:\n");
 		async.series([
 				createClients,
 				createClientsIndex,
@@ -121,7 +121,7 @@ module.exports = function (dbpath, debugOutput) {
 				createInvoicePos,
 				createTimes
 		], function(err, result) {
-			debugOut("Done.");
+			debuglog("Done.");
 		});
 	};
 
@@ -148,7 +148,7 @@ module.exports = function (dbpath, debugOutput) {
 
 	model.Client.create = function (client, callback) {
 		var st = db.prepare("INSERT INTO Clients (name, street1, street2, zip, city, short) VALUES ($name, $street1, $street2, $zip, $city, $short)");
-		debugOut("trying to bind these values:\n" + JSON.stringify(client, null, 2));
+		debuglog("trying to bind these values:\n" + JSON.stringify(client, null, 2));
 		st.run(client, function (err) {
 			if (err) {
 				console.log(err);
@@ -170,7 +170,7 @@ module.exports = function (dbpath, debugOutput) {
 		else
 			n = { $name: pattern};
 
-		debugOut("binding values:\n" + JSON.stringify(n));
+		debuglog("binding values: " + JSON.stringify(n));
 
 		st.all(n, function (err, rows) {
 			callback(err, rows);
@@ -219,7 +219,7 @@ module.exports = function (dbpath, debugOutput) {
 	/**
 	 * convenience method to write output only if debugging is enabled for this module
 	 */
-	function debugOut(msg) {
+	function debuglog(msg) {
 		if (debug)
 			console.log("[DEBUG] " + msg);
 	}
