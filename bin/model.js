@@ -195,6 +195,8 @@ module.exports = function (dbpath, debugput) {
 	}
 
 	model.Time.start = function (client, title, description, start, callback) {
+    if (!client || !title || !start)
+      throw "Wrong parameters!";
 		var st = db.prepare("INSERT INTO Times (fk_timesclient, title, description, start) VALUES ($client, $title, $description, $start);");
 
 		if (client instanceof Array && client.length == 1)
@@ -202,10 +204,7 @@ module.exports = function (dbpath, debugput) {
 
 		var params = { $client: client.id, $title: title, $description: description, $start: start };
 		st.run(params, function(err) {
-			if (err)
-				throw err;
-			else
-				console.log(this);
+      callback(err);
 		});
 	}
 
@@ -227,6 +226,58 @@ module.exports = function (dbpath, debugput) {
       }
 		});
 	}
+
+  /**
+   * ends the most recent time tracking
+   */
+  model.Time.stop = function (end, callback) {
+    if (!end)
+      throw "Please supply an end date!";
+
+    var qry = "update Times set end=$end where end is null";
+    var st = db.prepare(qry);
+    st.run({$end: end}, function(err) {
+      callback(err);
+    });
+  }
+
+  model.Time.list = function (filters, callback) {
+    if (filters && !(filters instanceof Array))
+      throw "filters parameter must be an array or null";
+
+    // base query
+    var qry = "select t.*, c.id clientid, c.name clientname from Times t JOIN Clients c ON t.fk_timesclient=c.id";
+
+    // process filters
+    var params = {};
+    if (filters) {
+      qry += " where ";
+      for (var i=0; i<filters.length; i++) {
+        var item = filters[i];
+        qry += " ";
+
+        if (item.length == 2) {
+          qry += item[0] + "=$" + item[0];
+        }
+        else if (item.length == 3) {
+          qry += item[0] + " " + item[2] + " $" + item[0];
+        }
+        else {
+          qry += ""+item[0];
+          continue;
+        }
+
+        // this builds the params object which will be used
+        // in the parameterized query
+        params['$'+item[0]] = item[1];
+      }
+    }
+
+    // run query
+    debuglog("running query: " + qry);
+    var st = db.prepare(qry);
+    st.all(params, callback);
+  };
 
 	/*
 	 * ######## MODELS END #########

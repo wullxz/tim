@@ -21,7 +21,7 @@ var Client = null, Invoice = null, TrackedTime = null;
 
 // parse commandline args
 var argv = minimist(process.argv.slice(2), {
-	alias: { v: 'verbose', h: 'help', c: 'client', s: 'short', t: 'title', d: 'description' }
+	alias: { v: 'verbose', h: 'help', c: 'client', s: 'short', t: 'title', d: 'description', f: 'filter' }
 });
 
 // create data directory and config
@@ -272,6 +272,39 @@ function proc(argv) {
 		});
 	}
 
+  // ##### STOP ####
+  // stop time tracking
+  else if (verb === 'stop') {
+    var end = (argv.end) ? argv.end : new Date();
+
+    m.Time.stop(end, function(err) {
+      if (err)
+        console.log("There was an error ending the timetracking:\n" + err);
+    });
+  }
+
+  // #### LIST ####
+  // list tracked times
+  else if (verb === 'list') {
+    var filts = null;
+    if (argv.f) {
+      var filts = JSON.parse(argv.f);
+    }
+
+    m.Time.list(filts, function(err, rows) {
+      if (!err)
+        console.log(JSON.stringify(rows, null, 2));
+      else
+        throw err;
+    });
+  }
+
+  // #### HELP ####
+  // output help for parameter
+  else if (verb === 'help') {
+    usage(argv._[1], false);
+  }
+
 	// ##### TEST ####
 	// for testing stuff
 	else if (verb === 'test') {
@@ -301,7 +334,7 @@ function timeTrack(client, title, description, date, action) {
 	if (!(date instanceof Date || date.toString() === "Invalid Date"))
 		throw "This is not a valid Date";
 
-	debuglog('\nClient object:\n', JSON.stringify(client, null, 2));
+	//debuglog('\nClient object:\n', JSON.stringify(client, null, 2));
 	if (action === 'start') {
 		m.Time.start(client, title, description, date, function (err) {
 			if (err)
@@ -362,8 +395,18 @@ function usage(arg, invalid) {
 	usage['search'][0] = "\ttim search client (-c|--client pattern)|(-s|--short key)";
 
 	// help for add keyword
-	usage['add'] = new Array(),
+	usage['add'] = new Array();
 	usage['add'][0] = "\ttim add client -c|--client ClientName [--street1 value] [--street2 value] [--zip zip] [--city city] [--short shortkey]";
+
+  // start keyword
+  usage['start'] = new Array();
+  usage['start'][0] = "\ttim start ((-c|--client ClientName)|(-s|--short ShortKey)) -t|--title Title [--description] [--start StartTime]";
+
+  usage['status'] = new Array();
+  usage['status'][0] = "\ttim status";
+
+  usage['stop'] = new Array();
+  usage['stop'][0] = "\ttim stop [--end EndTime]";
 
 	// output usage / help
 	console.log("Usage - incomplete but please go ahead and read what's already there:\n");
