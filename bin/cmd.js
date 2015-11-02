@@ -10,7 +10,6 @@ var minimist = require('minimist');
 var moment = require('moment');
 require('moment-duration-format');
 var sqlite = require('sqlite3');
-//var Seq = require('sequelize'); // db package
 var os = require('os');
 var tmpdir = (os.tmpdir || os.tmpDir)();
 var printf = require('sprintf-js').sprintf;
@@ -62,7 +61,7 @@ function proc(argv) {
 		if (target === 'help')
 			return usage('search', false);
 		// search clients
-		if (target === 'client') {
+		if (target === 'client' || !target) {
 			var spattern = "";
 			var stype = "";
 			if (argv.c || argv.name) {
@@ -94,6 +93,9 @@ function proc(argv) {
 				});
 			});
 		}
+    else {
+      return usage('search', true);
+    }
 	}
 
 	// ##### ADD #####
@@ -309,7 +311,7 @@ function usage(arg, invalid) {
 
 	// help for search keyword
 	usage['search'] = new Array();
-	usage['search'][0] = "\ttim search client (-c|--client pattern)|(-s|--short key)";
+	usage['search'][0] = "\ttim search [client] (-c|--client pattern)|(-s|--short key)";
 
 	// help for add keyword
 	usage['add'] = new Array();
