@@ -39,91 +39,6 @@ conf = (conf.trim() === "") ? {} : JSON.parse(conf);
 var dblogging = console.log;
 var m = require('./model.js')(path.join(datadir, 'db.sqlite'), debug);
 
-function openDb(callback, cbargs) {
-	// ########## model definition here! #####
-	Client = db.define('Client', {
-		name: Seq.STRING,
-		street1: Seq.STRING,
-		street2: Seq.STRING,
-		zip: Seq.STRING(7),
-		city: Seq.STRING,
-		short: { type: Seq.STRING(10), unique: true, allowNull: true }
-	});
-
-	Invoice = db.define('Invoice', {
-		date: Seq.DATE
-	});
-
-	TrackedTime = db.define('TrackedTime', {
-		start: Seq.DATE,
-		end: Seq.DATE,
-		title: Seq.STRING,
-		description: Seq.TEXT
-	});
-
-	InvoicePosition = db.define('InvoicePosition', {
-		title: Seq.STRING(100),
-		qty: Seq.DOUBLE,
-		value: Seq.DOUBLE,
-		desc: Seq.STRING
-	});
-
-	// relations
-	Client.hasMany(Invoice);
-	Client.hasMany(TrackedTime);
-	Invoice.hasMany(InvoicePosition);
-	InvoicePosition.hasMany(TrackedTime);
-
-	// ########## model definition end!  #####
-
-	//TODO: specify relations
-	//INFO: http://www.redotheweb.com/2013/02/20/sequelize-the-javascript-orm-in-practice.html
-
-	//TODO: initialize DB if not done already
-
-	// save changes to db:
-	Client.sync();
-	Invoice.sync();
-	TrackedTime.sync();
-	db.sync();
-	conf.init = 1;
-	saveConfig();
-	dbopen = true;
-	callback(cbargs);
-}
-
-function test(create) {
-	m.initDb();
-	//	if (create==='create') {
-	//		console.log('saving some clients now...');
-	//		Client.create({
-	//			name: "Max Mustermann",
-	//			street1: "Somestreet 123",
-	//			zip: "12345",
-	//			city: "Musterstadt"
-	//		})
-	//		Client.create({
-	//			name: "Ulla Musterfrau",
-	//			street1: "Sesamstraße 123",
-	//			zip: "12345",
-	//			city: "Musterstadt"
-	//		});
-	//		console.log('saved client data!\n');
-	//	}
-	//
-	//	console.log('outputting client data:');
-	//	Client.findAll().then(function (clients) {
-	//		if (typeof clients == 'undefined' || ! clients) {
-	//			console.log('error fetching clients!\n');
-	//			return -1;
-	//		}
-	//		clients.forEach(function(client) {
-	//			console.log('found client: ' + client.name);
-	//			console.log('address: ' + client.street1 + " - " + client.zip + " " + client.city);
-	//			console.log('---------------------------------');
-	//		});
-	//	});
-}
 
 /**
  *  processes commandline args
@@ -180,6 +95,7 @@ function proc(argv) {
 			});
 		}
 	}
+
 	// ##### ADD #####
 	// add a client to the database
 	else if (verb === 'add') {
@@ -202,6 +118,7 @@ function proc(argv) {
 			usage('add', true);
 		}
 	}
+
 	// ###### START ####
 	// start time measurement
 	else if (verb === 'start') {

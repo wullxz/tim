@@ -1,12 +1,13 @@
-module.exports = function (dbpath, debugput) {
-	var debug = debugput || false;
+module.exports = function (dbpath, debugoutput) {
+	var debug = debugoutput || false;
 	var model = {};
 	var async = require('async');
 	var sqlite3 = require('sqlite3').verbose();
 	var moment = require('moment');
 	require('moment-duration-format'); // duration format addon for momentjs
 	var db  = new sqlite3.Database(dbpath);
-	model.db = db;
+	//model.db = db;
+
 	/**
 	 * Create the initial structure for the database:
 	 * - tables
@@ -123,7 +124,7 @@ module.exports = function (dbpath, debugput) {
 				createInvoicePos,
 				createTimes
 		], function(err, result) {
-			debuglog("Done.");
+			debuglog("Done creating database.");
 		});
 	};
 
