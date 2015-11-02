@@ -7,6 +7,8 @@ var fs = require('fs');
 var path = require('path');
 var mkdirp = require('mkdirp');
 var minimist = require('minimist');
+var moment = require('moment');
+require('moment-duration-format');
 var sqlite = require('sqlite3');
 //var Seq = require('sequelize'); // db package
 var os = require('os');
@@ -239,6 +241,34 @@ function proc(argv) {
 			else {
 				timeTrack(clients, argv.t, argv.d, argv.start);
 			}
+		});
+	}
+
+	// ##### STATUS ####
+	// print status of time measurement
+	else if (verb === 'status') {
+		m.Time.status(function (err, data) {
+			if (err)
+				console.log("There was an error while querying for actual status: " + err);
+
+      // output status information if there's an open time track
+			if (data) {
+				// found a record, telling the user about the status
+				console.log(printf("Time tracking started!\n\t%-15s %s\n\t%-15s %s\n\t%-15s %s\n\t%-15s %s\n\t%-15s %s",
+                          "Client:",
+                          data.row.clientname,
+                          "Title:",
+                          data.row.title,
+                          "Description:",
+                          data.row.description,
+                          "Since:",
+                          moment(data.row.start).format('llll'),
+                          "Duration:",
+                          data.diff.format('H [h] m [min] s [sec]')));
+      }
+      else {
+        console.log("No time tracking running!");
+      }
 		});
 	}
 

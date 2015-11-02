@@ -3,6 +3,8 @@ module.exports = function (dbpath, debugput) {
 	var model = {};
 	var async = require('async');
 	var sqlite3 = require('sqlite3').verbose();
+	var moment = require('moment');
+	require('moment-duration-format'); // duration format addon for momentjs
 	var db  = new sqlite3.Database(dbpath);
 	model.db = db;
 	/**
@@ -195,12 +197,34 @@ module.exports = function (dbpath, debugput) {
 	model.Time.start = function (client, title, description, start, callback) {
 		var st = db.prepare("INSERT INTO Times (fk_timesclient, title, description, start) VALUES ($client, $title, $description, $start);");
 
+		if (client instanceof Array && client.length == 1)
+			client = client[0]; // array given but only one item in array... taking it!
+
 		var params = { $client: client.id, $title: title, $description: description, $start: start };
 		st.run(params, function(err) {
 			if (err)
 				throw err;
 			else
 				console.log(this);
+		});
+	}
+
+	model.Time.status = function (callback) {
+		var st = db.prepare("SELECT t.*, c.id clientid, c.name clientname FROM Times t JOIN Clients c ON t.fk_timesclient=c.id WHERE end IS NULL" );
+
+		st.get([], function (err, row)  {
+			if (!err && row) {
+				data = {};
+				data.row = row;
+
+				var start = new Date(row.start);
+				data.diffstr = moment.duration(moment().diff(start)).format('H [hours] m [minutes] s [seconds]');
+				data.diff = moment.duration(moment().diff(start));
+			  callback(err, data);
+			}
+      else {
+        callback (err, undefined);
+      }
 		});
 	}
 

@@ -14,7 +14,9 @@
     "nconf": "^0.7.2",
     "sqlite3": "^3.0.0",
 		"sprintf-js": "^1.0.0",
-    "async": "^1.4.2"
+    "async": "^1.4.2",
+		"moment": "^2",
+		"moment-duration-format": "^1"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
