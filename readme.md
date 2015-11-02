@@ -11,6 +11,8 @@ You need nodejs/npm to be installed on your system and then run:
 git clone https://github.com/wullxz/tim
 cd tim
 npm link
+
+tim help
 ```
 
 You might need to run `npm link` as administrator/superuser.
