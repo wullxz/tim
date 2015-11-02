@@ -253,9 +253,11 @@ module.exports = function (dbpath, debugoutput) {
     var params = {};
     if (filters) {
       qry += " where ";
+      var junctor = " AND ";
       for (var i=0; i<filters.length; i++) {
         var item = filters[i];
-        qry += " ";
+        if (i>=1)
+          qry += junctor;
 
         if (item.length == 2) {
           qry += item[0] + "=$" + item[0];
