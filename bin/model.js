@@ -25,7 +25,7 @@ module.exports = function (dbpath, debugoutput) {
 			cli = qB(cli, "		zip TEXT,");
 			cli = qB(cli, "		city TEXT,");
 			cli = qB(cli, "		short TEXT UNIQUE);");
-			model.db.run(cli, [], function(err, result) {
+			db.run(cli, [], function(err, result) {
 				if (err) {
 					debuglog("Error running query:\n" + cli + "\n\nErrors:\n" + err);
 				}
@@ -40,7 +40,7 @@ module.exports = function (dbpath, debugoutput) {
 
 		function createClientsIndex(callback) {
 			var cliU = "CREATE UNIQUE INDEX IF NOT EXISTS clientShort ON Clients(short);";
-			model.db.run(cliU, [], function(err, result) {
+			db.run(cliU, [], function(err, result) {
 				if (err)
 					debuglog("Error running query:\n" + cliU + "\n\nErrors:\n" + err);
 				else
@@ -59,7 +59,7 @@ module.exports = function (dbpath, debugoutput) {
 			invoices = qB(invoices, "		ClientId INTEGER,");
 			invoices = qB(invoices, "		fk_invoiceclient INTEGER,");
 			invoices = qB(invoices, "		FOREIGN KEY(fk_invoiceclient) REFERENCES Clients(id));");
-			model.db.run(invoices, [], function(err, result) {
+			db.run(invoices, [], function(err, result) {
 				if (err)
 					debuglog("Error running query:\n" + invoices + "\n\nErrors:\n" + err);
 				else
@@ -80,7 +80,7 @@ module.exports = function (dbpath, debugoutput) {
 			invoicepos = qB(invoicepos, "		description TEXT,");
 			invoicepos = qB(invoicepos, "		fk_invoiceposinvoice INTEGER,");
 			invoicepos = qB(invoicepos, "		FOREIGN KEY(fk_invoiceposinvoice) REFERENCES Invoice(id));");
-			model.db.run(invoicepos, [], function(err, result) {
+			db.run(invoicepos, [], function(err, result) {
 				if (err)
 					debuglog("Error running query:\n" + invoicepos + "\n\nErrors:\n" + err);
 				else
@@ -104,7 +104,7 @@ module.exports = function (dbpath, debugoutput) {
 			times = qB(times, "		fk_timesinvoicepos INTEGER,");
 			times = qB(times, "		FOREIGN KEY(fk_timesclient) REFERENCES Clients(id),");
 			times = qB(times, "		FOREIGN KEY(fk_timesinvoicepos) REFERENCES InvoicePos(id));");
-			model.db.run(times, [], function(err, result) {
+			db.run(times, [], function(err, result) {
 				if (err)
 					debuglog("Error running query:\n" + times + "\n\nErrors:\n" + err);
 				else

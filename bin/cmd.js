@@ -229,6 +229,12 @@ function proc(argv) {
 	else if (verb === 'test') {
 		test(argv.t);
 	}
+
+
+  else if (verb === 'init') {
+    m.initDb();
+  }
+
 	else {
 		usage(null, true);
 	}
