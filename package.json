@@ -20,5 +20,5 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Meik Specht <meik@schnitzelspecht.de> (http://www.schnitzelspecht.de)",
-  "license": "ISC"
+  "license": "MIT"
 }
