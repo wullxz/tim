@@ -24,6 +24,7 @@ module.exports = function (dbpath, debugoutput) {
 			cli = qB(cli, "		street2 TEXT,");
 			cli = qB(cli, "		zip TEXT,");
 			cli = qB(cli, "		city TEXT,");
+      cli = qB(cli, "   email TEXT,");
 			cli = qB(cli, "		short TEXT UNIQUE);");
 			db.run(cli, [], function(err, result) {
 				if (err) {
@@ -100,6 +101,7 @@ module.exports = function (dbpath, debugoutput) {
 			times = qB(times, "		title TEXT,");
 			times = qB(times, "		description TEXT,");
 			times = qB(times, "		invoiced INTEGER DEFAULT 0,");
+			times = qB(times, "		archived INTEGER DEFAULT 0,");
 			times = qB(times, "		fk_timesclient INTEGER,");
 			times = qB(times, "		fk_timesinvoicepos INTEGER,");
 			times = qB(times, "		FOREIGN KEY(fk_timesclient) REFERENCES Clients(id),");

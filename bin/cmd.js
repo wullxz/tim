@@ -15,9 +15,6 @@ var tmpdir = (os.tmpdir || os.tmpDir)();
 var printf = require('sprintf-js').sprintf;
 var readline = require('readline');
 
-// db model vars
-var Client = null, Invoice = null, TrackedTime = null;
-
 // parse commandline args
 var argv = minimist(process.argv.slice(2), {
 	alias: { v: 'verbose', h: 'help', c: 'client', s: 'short', t: 'title', d: 'description', f: 'filter' }
@@ -36,17 +33,16 @@ conf = (conf.trim() === "") ? {} : JSON.parse(conf);
 
 //TODO: make this setting accessable for the user in order to let him save it in dropbox or so
 var dblogging = console.log;
-var m = require('./model.js')(path.join(datadir, 'db.sqlite'), debug);
+var dbname = (process.env.DEV) ? 'db.dev.sqlite' : 'db.sqlite';
+debuglog("dbname: " + dbname);
+var m = require('./model.js')(path.join(datadir, dbname), debug);
 
 
 /**
  *  processes commandline args
  */
 function proc(argv) {
-	//	if (!dbopen) {
-	//		openDb(proc, argv);
-	//		return;
-	//	}
+
 
 	var verb = argv._[0];
 	if (argv.h) {
@@ -227,7 +223,10 @@ function proc(argv) {
 	// ##### TEST ####
 	// for testing stuff
 	else if (verb === 'test') {
-		test(argv.t);
+		var inv = require('./invoice.js')("./tpl/invoice.ejs");
+    var cli = { "name": "Kunde", "street1": "Kundenstraße 15", "street2": "Apartment 1a", "zip": 55411, "city": "Bingen" };
+    var pos = [{ "title": "Programmierung", "quantity": 5, "value": 20, "description": "code tests" }, { "title": "Programmierung", "quantity": 5, "value": 20, "description": "code tests" }];
+    inv.create(cli, pos, 10, new Date());
 	}
 
 

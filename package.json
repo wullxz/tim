@@ -14,7 +14,9 @@
 		"sprintf-js": "^1.0.0",
     "async": "^1.4.2",
 		"moment": "^2",
-		"moment-duration-format": "^1"
+		"moment-duration-format": "^1",
+    "html-pdf": "^1.4.0",
+    "ejs": "^2.3.4"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
