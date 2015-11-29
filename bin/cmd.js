@@ -17,7 +17,7 @@ var readline = require('readline');
 
 // parse commandline args
 var argv = minimist(process.argv.slice(2), {
-	alias: { v: 'verbose', h: 'help', c: 'client', s: 'short', t: 'title', d: 'description', f: 'filter' }
+  alias: { v: 'verbose', h: 'help', c: 'client', s: 'short', t: 'title', d: 'description', f: 'filter' }
 });
 
 // create data directory and config
@@ -44,148 +44,148 @@ var m = require('./model.js')(path.join(datadir, dbname), debug);
 function proc(argv) {
 
 
-	var verb = argv._[0];
-	if (argv.h) {
-		usage(0);
-	}
+  var verb = argv._[0];
+  if (argv.h) {
+    usage(0);
+  }
 
-	// ##### SEARCH #####
-	// search something on the database
-	// for now you can only search clients
-	else if (verb === 'search') {
-		var target = argv._[1];
-		if (target === 'help')
-			return usage('search', false);
-		// search clients
-		if (target === 'client' || !target) {
-			var spattern = "";
-			var stype = "";
-			if (argv.c || argv.name) {
-				spattern = (argv.c) ? argv.c : argv.name;
-				stype = "name";
-			}
-			else if (argv.s) {
-				spattern = argv.s;
-				stype = "short";
-			}
-			else {
-				//console.log("Please specify a client name with -c|--client or a short key with -s|--short!");
-				return usage('search', true);
-			}
+  // ##### SEARCH #####
+  // search something on the database
+  // for now you can only search clients
+  else if (verb === 'search') {
+    var target = argv._[1];
+    if (target === 'help')
+      return usage('search', false);
+    // search clients
+    if (target === 'client' || !target) {
+      var spattern = "";
+      var stype = "";
+      if (argv.c || argv.name) {
+        spattern = (argv.c) ? argv.c : argv.name;
+        stype = "name";
+      }
+      else if (argv.s) {
+        spattern = argv.s;
+        stype = "short";
+      }
+      else {
+        //console.log("Please specify a client name with -c|--client or a short key with -s|--short!");
+        return usage('search', true);
+      }
 
-			getClient(spattern, stype, function (err, clients) {
-				if (err) {
-					console.log(err);
-					process.exit(-1);
-				}
-				if (typeof clients == 'undefined' || ! clients) {
-					console.log('No clients with that name or short-code found!\n');
-					return 0;
-				}
+      getClient(spattern, stype, function (err, clients) {
+        if (err) {
+          console.log(err);
+          process.exit(-1);
+        }
+        if (typeof clients == 'undefined' || ! clients) {
+          console.log('No clients with that name or short-code found!\n');
+          return 0;
+        }
 
-				console.log(printf("%-5s | %-15s | %-20s | %-6s | %-20s | %-10s", "ID", "Name", "Street 1", "Zip", "City", "Shortkey"));
-				clients.forEach(function(client) {
-					console.log(printf("%-5s | %-15s | %-20s | %-6s | %-20s | %-10s", client.id, client.name, stripNull(client.street1), stripNull(client.zip), stripNull(client.city), stripNull(client.short)));
-				});
-			});
-		}
+        console.log(printf("%-5s | %-15s | %-20s | %-6s | %-20s | %-10s", "ID", "Name", "Street 1", "Zip", "City", "Shortkey"));
+        clients.forEach(function(client) {
+          console.log(printf("%-5s | %-15s | %-20s | %-6s | %-20s | %-10s", client.id, client.name, stripNull(client.street1), stripNull(client.zip), stripNull(client.city), stripNull(client.short)));
+        });
+      });
+    }
     else {
       return usage('search', true);
     }
-	}
+  }
 
-	// ##### ADD #####
-	// add a client to the database
-	else if (verb === 'add') {
-		var type = argv._[1];
-		if (type === 'client') {
-			if (typeof argv.name === 'undefined' || argv.name.trim() === "") {
-				console.log("Please supply at least a name for the new customer!");
-				process.exit(-1);
-			}
-			m.Client.create({
-				$name: argv.name,
-				$street1: argv.street1 || "",
-				$zip: argv.zip+"" || "",
-					$city: argv.city || "",
-					$street2: argv.street2 || "",
-						$short: argv.short || null
-			});
-		}
-		else {
-			usage('add', true);
-		}
-	}
+  // ##### ADD #####
+  // add a client to the database
+  else if (verb === 'add') {
+    var type = argv._[1];
+    if (type === 'client') {
+      if (typeof argv.name === 'undefined' || argv.name.trim() === "") {
+        console.log("Please supply at least a name for the new customer!");
+        process.exit(-1);
+      }
+      m.Client.create({
+        $name: argv.name,
+        $street1: argv.street1 || "",
+        $zip: argv.zip+"" || "",
+        $city: argv.city || "",
+        $street2: argv.street2 || "",
+        $short: argv.short || null
+      });
+    }
+    else {
+      usage('add', true);
+    }
+  }
 
-	// ###### START ####
-	// start time measurement
-	else if (verb === 'start') {
-		var spattern = "";
-		var stype = "";
+  // ###### START ####
+  // start time measurement
+  else if (verb === 'start') {
+    var spattern = "";
+    var stype = "";
 
-		// get search type for client
-		if (argv.c) {
-			spattern = argv.c;
-			stype = "name";
-		}
-		else if (argv.s) {
-			spattern = argv.s;
-			stype = "short";
-		}
-		else {
-			console.log("Please specify a client name with -c|--client or a short key with -s|--short!");
-			return;
-		}
+    // get search type for client
+    if (argv.c) {
+      spattern = argv.c;
+      stype = "name";
+    }
+    else if (argv.s) {
+      spattern = argv.s;
+      stype = "short";
+    }
+    else {
+      console.log("Please specify a client name with -c|--client or a short key with -s|--short!");
+      return;
+    }
 
-		getClient(spattern, stype, function(err, clients) {
-			if (err) {
-				console.log(err);
-				process.exist(-1);
-			}
+    getClient(spattern, stype, function(err, clients) {
+      if (err) {
+        console.log(err);
+        process.exist(-1);
+      }
 
-			if (typeof clients === 'undefined' || clients === null) {
-				console.log("No clients with that search pattern found!");
-				process.exit(-1);
-			}
+      if (typeof clients === 'undefined' || clients === null) {
+        console.log("No clients with that search pattern found!");
+        process.exit(-1);
+      }
 
-			if (clients.length > 1) {
-				//TODO: ask which client to use
-				console.log("there's more than one client in the result set!");
-				process.exit(-1);
-			}
-			else {
-				timeTrack(clients, argv.t, argv.d, argv.start);
-			}
-		});
-	}
+      if (clients.length > 1) {
+        //TODO: ask which client to use
+        console.log("there's more than one client in the result set!");
+        process.exit(-1);
+      }
+      else {
+        timeTrack(clients, argv.t, argv.d, argv.start);
+      }
+    });
+  }
 
-	// ##### STATUS ####
-	// print status of time measurement
-	else if (verb === 'status') {
-		m.Time.status(function (err, data) {
-			if (err)
-				console.log("There was an error while querying for actual status: " + err);
+  // ##### STATUS ####
+  // print status of time measurement
+  else if (verb === 'status') {
+    m.Time.status(function (err, data) {
+      if (err)
+        console.log("There was an error while querying for actual status: " + err);
 
       // output status information if there's an open time track
-			if (data) {
-				// found a record, telling the user about the status
-				console.log(printf("Time tracking started!\n\t%-15s %s\n\t%-15s %s\n\t%-15s %s\n\t%-15s %s\n\t%-15s %s",
-                          "Client:",
-                          data.row.clientname,
-                          "Title:",
-                          data.row.title,
-                          "Description:",
-                          data.row.description,
-                          "Since:",
-                          moment(data.row.start).format('llll'),
-                          "Duration:",
-                          data.diff.format('H [h] m [min] s [sec]')));
+      if (data) {
+        // found a record, telling the user about the status
+        console.log(printf("Time tracking started!\n\t%-15s %s\n\t%-15s %s\n\t%-15s %s\n\t%-15s %s\n\t%-15s %s",
+                           "Client:",
+                           data.row.clientname,
+                           "Title:",
+                           data.row.title,
+                           "Description:",
+                           data.row.description,
+                           "Since:",
+                           moment(data.row.start).format('llll'),
+                           "Duration:",
+                           data.diff.format('H [h] m [min] s [sec]')));
       }
       else {
         console.log("No time tracking running!");
       }
-		});
-	}
+    });
+  }
 
   // ##### STOP ####
   // stop time tracking
@@ -239,23 +239,23 @@ function proc(argv) {
     usage(argv._[1], false);
   }
 
-	// ##### TEST ####
-	// for testing stuff
-	else if (verb === 'test') {
-		var inv = require('./invoice.js')("./tpl/invoice.ejs");
+  // ##### TEST ####
+  // for testing stuff
+  else if (verb === 'test') {
+    var inv = require('./invoice.js')("./tpl/invoice.ejs");
     var cli = { "name": "Kunde", "street1": "Kundenstraße 15", "street2": "Apartment 1a", "zip": 55411, "city": "Bingen" };
     var pos = [{ "title": "Programmierung", "quantity": 5, "value": 20, "description": "code tests" }, { "title": "Programmierung", "quantity": 5, "value": 20, "description": "code tests" }];
     inv.create(cli, pos, 10, new Date());
-	}
+  }
 
 
   else if (verb === 'init') {
     m.initDb();
   }
 
-	else {
-		usage(null, true);
-	}
+  else {
+    usage(null, true);
+  }
 }
 
 /**
@@ -265,30 +265,30 @@ function proc(argv) {
  * - title
  */
 function timeTrack(client, title, description, date, action) {
-	action = typeof action === 'undefined' ? "start" : action;
-	if (typeof client === 'undefined' || client === null)
-		throw "Please specify a client to track the time for!";
-	if (typeof title === 'undefined' || title === null)
-		throw "You need to specify a title!";
-	description = typeof description !== 'undefined' ? description : null;
+  action = typeof action === 'undefined' ? "start" : action;
+  if (typeof client === 'undefined' || client === null)
+    throw "Please specify a client to track the time for!";
+  if (typeof title === 'undefined' || title === null)
+    throw "You need to specify a title!";
+  description = typeof description !== 'undefined' ? description : null;
 
-	// parse date here
-	date = typeof date !== 'undefined' ? new Date(date) : new Date();
-	if (!(date instanceof Date || date.toString() === "Invalid Date"))
-		throw "This is not a valid Date";
+  // parse date here
+  date = typeof date !== 'undefined' ? new Date(date) : new Date();
+  if (!(date instanceof Date || date.toString() === "Invalid Date"))
+    throw "This is not a valid Date";
 
-	//debuglog('\nClient object:\n', JSON.stringify(client, null, 2));
-	if (action === 'start') {
-		m.Time.start(client, title, description, date, function (err) {
-			if (err)
-				throw err;
-			else
-				console.log("insert successful!");
-		});
-	}
-	else if (action === 'stop') {
-		//TODO implement
-	}
+  //debuglog('\nClient object:\n', JSON.stringify(client, null, 2));
+  if (action === 'start') {
+    m.Time.start(client, title, description, date, function (err) {
+      if (err)
+        throw err;
+      else
+        console.log("insert successful!");
+    });
+  }
+  else if (action === 'stop') {
+    //TODO implement
+  }
 }
 
 /**
@@ -296,50 +296,50 @@ function timeTrack(client, title, description, date, action) {
  * and passes the results to callback
  */
 function getClient(spattern, stype, callback) {
-	// search for client name
-	if (stype==='name') {
-		debuglog("searching client by name: " + spattern);
-		m.Client.findByName({ $name: spattern	}, callback)
-	}
-	// search for short code
-	else if (stype==='short') {
-		debuglog("searching client by shortkey:" + spattern);
-		m.Client.findByKey({ $short: spattern }, callback);
-	}
-	else {
-		console.log("Not a valid search option: " + stype);
-		process.exit(-1);
-	}
+  // search for client name
+  if (stype==='name') {
+    debuglog("searching client by name: " + spattern);
+    m.Client.findByName({ $name: spattern	}, callback)
+  }
+  // search for short code
+  else if (stype==='short') {
+    debuglog("searching client by shortkey:" + spattern);
+    m.Client.findByKey({ $short: spattern }, callback);
+  }
+  else {
+    console.log("Not a valid search option: " + stype);
+    process.exit(-1);
+  }
 }
 
 /**
  * saves the configuration
  */
 function saveConfig() {
-	fs.writeFileSync(confpath, JSON.stringify(conf), { encoding: 'utf8' }, function (err) {
-		if (err) throw err;
-		console.log('Config saved!');
-	});
+  fs.writeFileSync(confpath, JSON.stringify(conf), { encoding: 'utf8' }, function (err) {
+    if (err) throw err;
+    console.log('Config saved!');
+  });
 }
 
 /**
  * prints usage information for tim
  */
 function usage(arg, invalid) {
-	// parse arguments
-	invalid = typeof invalid === 'undefined' ? false : invalid;
-	if (invalid) console.log("Invalid command!");
+  // parse arguments
+  invalid = typeof invalid === 'undefined' ? false : invalid;
+  if (invalid) console.log("Invalid command!");
 
-	// define usage strings
-	var usage = new Array();
+  // define usage strings
+  var usage = new Array();
 
-	// help for search keyword
-	usage['search'] = new Array();
-	usage['search'][0] = "\ttim search [client] (-c|--client pattern)|(-s|--short key)";
+  // help for search keyword
+  usage['search'] = new Array();
+  usage['search'][0] = "\ttim search [client] (-c|--client pattern)|(-s|--short key)";
 
-	// help for add keyword
-	usage['add'] = new Array();
-	usage['add'][0] = "\ttim add client -c|--client ClientName [--street1 value] [--street2 value] [--zip zip] [--city city] [--short shortkey]";
+  // help for add keyword
+  usage['add'] = new Array();
+  usage['add'][0] = "\ttim add client -c|--client ClientName [--street1 value] [--street2 value] [--zip zip] [--city city] [--short shortkey]";
 
   // start keyword
   usage['start'] = new Array();
@@ -351,23 +351,23 @@ function usage(arg, invalid) {
   usage['stop'] = new Array();
   usage['stop'][0] = "\ttim stop [--end EndTime]";
 
-	// output usage / help
-	console.log("Usage - incomplete but please go ahead and read what's already there:\n");
-	if (arg && usage[arg] != undefined) {
-		console.log("Usage for tim " + arg + ":");
-		usage[arg].forEach(function (val) {
-			console.log(val);
-		});
-	}
-	else {
-		for (var usg in usage) {
-			usage[usg].forEach(function (val) {
-				console.log(val);
-			});
-		}
-	}
+  // output usage / help
+  console.log("Usage - incomplete but please go ahead and read what's already there:\n");
+  if (arg && usage[arg] != undefined) {
+    console.log("Usage for tim " + arg + ":");
+    usage[arg].forEach(function (val) {
+      console.log(val);
+    });
+  }
+  else {
+    for (var usg in usage) {
+      usage[usg].forEach(function (val) {
+        console.log(val);
+      });
+    }
+  }
 
-	process.exit(invalid ? -1 : 0);
+  process.exit(invalid ? -1 : 0);
 }
 
 function asTable() {
@@ -434,15 +434,15 @@ function asTable() {
 }
 
 function debuglog(str) {
-	if (debug)
-		console.log("[DEBUG] " + str);
+  if (debug)
+    console.log("[DEBUG] " + str);
 }
 
 function stripNull(str) {
-	if (typeof str === 'undefined' || str === null)
-		return "";
-	else
-		return str;
+  if (typeof str === 'undefined' || str === null)
+    return "";
+  else
+    return str;
 }
 
 proc(argv);
