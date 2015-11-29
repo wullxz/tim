@@ -372,60 +372,71 @@ function usage(arg, invalid) {
 
 function asTable() {
   // arguments:
-  var obj = arguments[0];
+  var objectArray = arguments[0];
   var keyList = Array.prototype.slice.call(arguments, 1);
 
-  var keys = [];
+  var keys = [];       // contains all key names of objects stored in objectArray
   var keydict = [];
   var maxlength = []; // max length for every column
   var formats = [];
 
   // validate arguments: obj
-  if (!obj)
+  if (!objectArray) {
     throw {"name": "ArgumentInvalidEx", "msg": "You must supply at least one object to print as table"};
+  }
+
   // pack obj into an array if it isn't in one
-  if (obj.constructor !== Array)
-    obj = [obj,];
+  if (objectArray.constructor !== Array) {
+    objectArray = [obj,];
+  }
+
   // validate arguments: keys
-  if (!keyList || keyList.length === 0)
-    for (var k in obj[0])
-      if (typeof k !== 'function') keyList.push(k);
+  if (!keyList || keyList.length === 0) {
+    for (var key in objectArray[0]) {
+      if (typeof key !== 'function') keyList.push(key);
+    }
+  }
+
   // create keys array and keydict to save key aliases for the table
-  keyList.map(function(k) {
-    if (k.constructor === Array) {
-      keys.push(k[0]);
-      keydict[k[0]] = k[1];
-      maxlength[k] = ((k[0]+"").length > (k[1]+"").length) ? (k[0]+"").length : (k[1]+"").length; // (k[x]+"") -> implicit string conversion
+  // also initializes maxlength[key] with the length of the keyname which will be used as header
+  keyList.forEach(function(key) {
+    if (key.constructor === Array) {
+      keys.push(key[0]);
+      keydict[key[0]] = key[1];
+      maxlength[key] = (key[1]+"").length;
     }
     else {
-      keys.push(k);
-      maxlength[k] = (k+"").length;
+      keys.push(key);
+      maxlength[key] = (key+"").length;
     }
   });
 
   // find max length of content for each key
-  obj.map(function (o) {
-    keys.map(function (p) {
-      maxlength[p] = (maxlength[p] >= (o[p]+"").length) ? maxlength[p] : (o[p]+"").length;
+  objectArray.forEach(function (obj) {
+    keys.forEach(function (key) {
+      if ((obj[key]+"").length > maxlength[key]) {
+        maxlength[key] = (obj[key]+"").length;
+      }
     });
   });
 
   // print header
   var line = "";
-  var headerlbls = [];
-  keys.map(function(h) {
-    line += "%-" + maxlength[h] + "s|";
-    headerlbls.push((keydict[h]) ? keydict[h] : h);
+  var headerLabels = [];
+  keys.forEach(function(key) {
+    line += "%-" + maxlength[key] + "s|";   // insert max length of key/value for obj key
+    headerLabels.push((keydict[key]) ? keydict[key] : key);   // save headers in array
   });
-  line = line.substring(0,line.length-1); // line variable ready here
-  var ar = headerlbls;
-  ar.unshift(line);
-  console.log(printf.apply(this, ar));
+  line = line.substring(0,line.length-1); // remove last "|", line done here
+
+  var ar = headerLabels;
+  ar.unshift(line);               // put the format string in front of args array
+  console.log(printf.apply(this, ar)); // print headers
   // print content
-  obj.map(function (o) { // loop objects
+  objectArray.map(function (obj) { // loop objects
     var objvalues = [];
-    keys.map(function (k) {
-      objvalues.push(o[k]);
+    keys.forEach(function (key) {
+      objvalues.push(obj[key]); // push object values into array for each key
     });
 
     objvalues.unshift(line);
