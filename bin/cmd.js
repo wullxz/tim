@@ -210,8 +210,20 @@ function proc(argv) {
       if (err)
         throw err;
 
-      //TODO: print this as a nice table
-      console.log(JSON.stringify(rows, null, 2));
+      rows.map(function (r) {
+        r.start = moment(r.start).format("llll");
+        r.end = moment(r.end).format("llll");
+      });
+
+      var cols = [];
+      if (argv.columns)
+        cols = argv.columns.split(',');
+      else
+        cols = ["start", "end", "title", "invoiced", "archived", "clientname", "diffstr"];
+
+      cols.unshift(rows);
+      asTable.apply(this, cols);
+      //asTable(rows, cols);
     });
   }
 
@@ -356,6 +368,69 @@ function usage(arg, invalid) {
 	}
 
 	process.exit(invalid ? -1 : 0);
+}
+
+function asTable() {
+  // arguments:
+  var obj = arguments[0];
+  var keyList = Array.prototype.slice.call(arguments, 1);
+
+  var keys = [];
+  var keydict = [];
+  var maxlength = []; // max length for every column
+  var formats = [];
+
+  // validate arguments: obj
+  if (!obj)
+    throw {"name": "ArgumentInvalidEx", "msg": "You must supply at least one object to print as table"};
+  // pack obj into an array if it isn't in one
+  if (obj.constructor !== Array)
+    obj = [obj,];
+  // validate arguments: keys
+  if (!keyList || keyList.length === 0)
+    for (var k in obj[0])
+      if (typeof k !== 'function') keyList.push(k);
+  // create keys array and keydict to save key aliases for the table
+  keyList.map(function(k) {
+    if (k.constructor === Array) {
+      keys.push(k[0]);
+      keydict[k[0]] = k[1];
+      maxlength[k] = ((k[0]+"").length > (k[1]+"").length) ? (k[0]+"").length : (k[1]+"").length; // (k[x]+"") -> implicit string conversion
+    }
+    else {
+      keys.push(k);
+      maxlength[k] = (k+"").length;
+    }
+  });
+
+  // find max length of content for each key
+  obj.map(function (o) {
+    keys.map(function (p) {
+      maxlength[p] = (maxlength[p] >= (o[p]+"").length) ? maxlength[p] : (o[p]+"").length;
+    });
+  });
+
+  // print header
+  var line = "";
+  var headerlbls = [];
+  keys.map(function(h) {
+    line += "%-" + maxlength[h] + "s|";
+    headerlbls.push((keydict[h]) ? keydict[h] : h);
+  });
+  line = line.substring(0,line.length-1); // line variable ready here
+  var ar = headerlbls;
+  ar.unshift(line);
+  console.log(printf.apply(this, ar));
+  // print content
+  obj.map(function (o) { // loop objects
+    var objvalues = [];
+    keys.map(function (k) {
+      objvalues.push(o[k]);
+    });
+
+    objvalues.unshift(line);
+    console.log(printf.apply(this, objvalues));
+  });
 }
 
 function debuglog(str) {
