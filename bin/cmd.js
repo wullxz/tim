@@ -190,7 +190,7 @@ function proc(argv) {
   // ##### STOP ####
   // stop time tracking
   else if (verb === 'stop') {
-    var end = (argv.end) ? argv.end : new Date();
+    var end = (argv.end) ? new Date(argv.end) : new Date();
 
     m.Time.stop(end, function(err) {
       if (err)
@@ -207,11 +207,18 @@ function proc(argv) {
     }
 
     m.Time.list(filts, function(err, rows) {
-      if (!err)
-        console.log(JSON.stringify(rows, null, 2));
-      else
+      if (err)
         throw err;
+
+      //TODO: print this as a nice table
+      console.log(JSON.stringify(rows, null, 2));
     });
+  }
+
+  // #### STAGE ###
+  // stages tracked times or invoice positions
+  else if (verb === 'stage') {
+    //TODO
   }
 
   // #### HELP ####
