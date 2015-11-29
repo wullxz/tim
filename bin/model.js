@@ -79,6 +79,7 @@ module.exports = function (dbpath, debugoutput) {
 			invoicepos = qB(invoicepos, "		quantity NUMERIC,");
 			invoicepos = qB(invoicepos, "		value NUMERIC,");
 			invoicepos = qB(invoicepos, "		description TEXT,");
+      invoicepos = qB(invoicepos, "   invoiced INTEGER DEFAULT 0,");
 			invoicepos = qB(invoicepos, "		fk_invoiceposinvoice INTEGER,");
 			invoicepos = qB(invoicepos, "		FOREIGN KEY(fk_invoiceposinvoice) REFERENCES Invoice(id));");
 			db.run(invoicepos, [], function(err, result) {
@@ -117,6 +118,22 @@ module.exports = function (dbpath, debugoutput) {
 				callback();
 			});
 		}
+
+    function createStaging(callback) {
+      var qry = new Qry();
+      qry.add("CREATE TABLE IF NOT EXISTS Staging (");
+      qry.add("   id INTEGER NOT NULL,").add("   type TEXT NOT NULL;");
+      db.run(qry.qry(), [], function (err, result) {
+        if (err)
+          debuglog("Error running query:\n" + times + "\n\nErrors:\n" + err);
+        else
+          debuglog("Query for Staging successful!");
+        if (result)
+          debuglog("Results:\n" + result);
+
+        callback();
+      });
+    }
 
 		debuglog("Run all CREATE queries:\n");
 		async.series([
@@ -193,8 +210,16 @@ module.exports = function (dbpath, debugoutput) {
 	 * Time model
 	 */
 
-	model.Time = function () {
-
+	model.Time = function (id, start, end, title, description, invoiced, archived, fk_timesclient, fk_timesinvoicepos) {
+    this.id = id;
+    this.start = start;
+    this.end = end;
+    this.title = title;
+    this.description = description;
+    this.invoiced = invoiced;
+    this.archived = archived;
+    this.fk_timesclient = fk_timesclient;
+    this.fk_timesinvoicepos = fk_timesinvoicepos;
 	}
 
 	model.Time.start = function (client, title, description, start, callback) {
@@ -281,8 +306,49 @@ module.exports = function (dbpath, debugoutput) {
     // run query
     debuglog("running query: " + qry);
     var st = db.prepare(qry);
-    st.all(params, callback);
+    st.all(params, function (err, rows) {
+      for (var i=0; i<rows.length; i++) {
+        var row = rows[i];
+
+        // calc duration
+        var start = new Date(row.start);
+        var end = new Date(row.end);
+				row.diffstr = moment.duration(moment(end).diff(start)).format('H [hours] m [minutes] s [seconds]');
+				row.diff = moment.duration(moment(end).diff(start));
+      }
+
+      callback(err, rows);
+    });
   };
+
+  model.InvoicePos = function () {
+
+  }
+
+  model.InvoicePos.create = function (times) {
+    if (times.constructor !== Array || times.length == 0)
+       throw "times parameter must be an array of Time IDs or model.Time instances!";
+
+    // get all time records from database
+    var tobjs = [];         // list of time objects
+    var qry = "select * from times where id=$id";
+    db.serialize(function() { // need to serialize database queries!
+      for (var i=0; i<times.length; i++) {
+        if (times[i] instanceof model.Time) {
+          tobjs.push(times[i]);
+        }
+        else {
+          var st = db.prepare(qry);
+          st.get([{"$id": times[i]}], function (err, row) {
+            if (err)
+              throw "There was an error retreiving all time records from the database! ID: " + times[i];
+
+            tobjs.push(row);
+          });
+        }
+      }
+    });
+  }
 
 	/*
 	 * ######## MODELS END #########
@@ -295,6 +361,19 @@ module.exports = function (dbpath, debugoutput) {
 		str = str + "\n" + line;
 		return str;
 	}
+
+  function Qry() {
+    this._qry = "";
+  }
+
+  Qry.prototype.add = function (string) {
+    this._qry = this._qry + "\n" + string;
+    return this;
+  }
+
+  Qry.prototype.qry = function () {
+    return this._qry;
+  }
 
 	/**
 	 * convenience method to write output only if debugging is enabled for this module
