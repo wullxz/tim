@@ -403,19 +403,19 @@ function asTable() {
     if (key.constructor === Array) {
       keys.push(key[0]);
       keydict[key[0]] = key[1];
-      maxlength[key] = (key[1]+"").length;
+      maxlength[key] = String(key[1]).length;
     }
     else {
       keys.push(key);
-      maxlength[key] = (key+"").length;
+      maxlength[key] = String(key).length;
     }
   });
 
   // find max length of content for each key
   objectArray.forEach(function (obj) {
     keys.forEach(function (key) {
-      if ((obj[key]+"").length > maxlength[key]) {
-        maxlength[key] = (obj[key]+"").length;
+      if (String(obj[key]).length > maxlength[key]) {
+        maxlength[key] = String(obj[key]).length;
       }
     });
   });
