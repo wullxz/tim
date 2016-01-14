@@ -16,7 +16,8 @@
 		"moment": "^2",
 		"moment-duration-format": "^1",
     "html-pdf": "^1.4.0",
-    "ejs": "^2.3.4"
+    "ejs": "^2.3.4",
+		"readline-sync": "^1.2.22"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

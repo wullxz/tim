@@ -13,7 +13,7 @@ var sqlite = require('sqlite3');
 var os = require('os');
 var tmpdir = (os.tmpdir || os.tmpDir)();
 var printf = require('sprintf-js').sprintf;
-var readline = require('readline');
+var rls = require('readline-sync');
 
 // parse commandline args
 var argv = minimist(process.argv.slice(2), {
@@ -232,11 +232,69 @@ function proc(argv) {
   // #### STAGE ###
   // stages tracked times or invoice positions
   else if (verb === 'stage') {
-    var what = argv._[2]; // stage what?
+    var what = argv._[1]; // stage what?
 		if (what === "times") {
 			var client = argv.c || argv.s;
-			var filter = {};
-			
+			var filter = [
+				["invoiced", 0],
+				["archived", 0],
+				["end not null"]
+			];
+			if (argv.c) {
+				filter.push(["clientName", argv.c]);
+			}
+			else {
+				filter.push(["shortKey", argv.s]);
+			}
+
+			m.Time.list(filter, function(err, rows) {
+				if (err)
+					throw err;
+
+				// show start and end times in a more readable way
+				rows.map(function (r) {
+					r.start = moment(r.start).format("llll");
+					r.end = moment(r.end).format("llll");
+				});
+
+				// print table
+				var cols = ["id","start", "end", "title", "clientname", "diffstr"];
+				cols.unshift(rows);
+				asTable.apply(this, cols);
+
+				console.log(""); // empty line after table
+
+				// ask for time-IDs to put into an invoice position
+				var answer = rls.question("Select 'all' or a comma separated list of time-IDs: ");
+				var ids = [];
+				var times = [];
+				var quantity = 0;
+				var hourlyWage = conf.hourlyDefaultWage;
+				if (answer === "all") {
+					rows.forEach(function (item) {
+						ids.push(item.id);
+					});
+					times = rows;
+				}
+				else {
+					ids = answer.split(",");
+					ids = ids.map(Number);
+					rows.forEach(function (item) {
+						if (ids.indexOf(item.id)>=0) {
+							times.push(item);
+							quantity += item.diff.asHours();
+						}
+					});
+				}
+
+				// ask for other stuff
+				var title = rls.question("Title for this position: ");
+				var description = rls.question("Description for this position (optional): ");
+				var value = rls.question("Value per hour (" + hourlyWage + "): ") | hourlyWage;
+				var quantity = rls.question("Quantity (" + Math.ceil(quantity) + "): ") | Math.ceil(quantity);
+
+				console.log("Choices:\n"+title+"\n"+description+"\n"+value+"\n"+quantity);
+			});
 		}
 		else if (what === "pos") {
 
@@ -264,6 +322,8 @@ function proc(argv) {
 
   else if (verb === 'init') {
     m.initDb();
+		conf.hourlyDefaultWage = rls.question("What will be your default hourly wage? ");
+		saveConfig();
   }
 
   else {
@@ -367,6 +427,10 @@ function usage(arg, invalid) {
 	usage['list'] = new Array();
 	usage['list'][0] = "\ttim list [filters]";
 
+	usage['stage'] = new Array();
+	usage['stage'].push("\ttim stage - Combines tracked times into an invoice position");
+	usage['stage'].push("\ttim stage times|pos (-c|--client clientName)|(-s|--short shortKey)");
+
   // output usage / help
   console.log("Usage - incomplete but please go ahead and read what's already there:\n");
   if (arg && usage[arg] != undefined) {
@@ -462,7 +526,7 @@ function asTable() {
 
 function debuglog(str) {
   if (debug)
-    console.log("[DEBUG] " + str);
+    console.log("[DEBUG] " + str + "\n");
 }
 
 function stripNull(str) {

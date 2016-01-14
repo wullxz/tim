@@ -274,7 +274,7 @@ module.exports = function (dbpath, debugoutput) {
       throw "filters parameter must be an array or null";
 
     // base query
-    var qry = "select t.*, c.id clientid, c.name clientname from Times t JOIN Clients c ON t.fk_timesclient=c.id";
+    var qry = "select t.*, c.id clientid, c.name clientname, c.short shortKey from Times t JOIN Clients c ON t.fk_timesclient=c.id";
 
     // process filters
     var params = {};
@@ -380,7 +380,7 @@ module.exports = function (dbpath, debugoutput) {
 	 */
 	function debuglog(msg) {
 		if (debug)
-			console.log("[DEBUG] " + msg);
+			console.log("[DEBUG] " + msg + "\n");
 	}
 
 	return model;
