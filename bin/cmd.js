@@ -216,10 +216,12 @@ function proc(argv) {
       });
 
       var cols = [];
-      if (argv.columns)
+      if (argv.columns) {
         cols = argv.columns.split(',');
-      else
+			}
+      else {
         cols = ["start", "end", "title", "invoiced", "archived", "clientname", "diffstr"];
+			}
 
       cols.unshift(rows);
       asTable.apply(this, cols);
@@ -230,7 +232,18 @@ function proc(argv) {
   // #### STAGE ###
   // stages tracked times or invoice positions
   else if (verb === 'stage') {
-    //TODO
+    var what = argv._[2]; // stage what?
+		if (what === "times") {
+			var client = argv.c || argv.s;
+			var filter = {};
+			
+		}
+		else if (what === "pos") {
+
+		}
+		else {
+			usage('stage', true);
+		}
   }
 
   // #### HELP ####
@@ -343,13 +356,16 @@ function usage(arg, invalid) {
 
   // start keyword
   usage['start'] = new Array();
-  usage['start'][0] = "\ttim start ((-c|--client ClientName)|(-s|--short ShortKey)) -t|--title Title [--description] [--start StartTime]";
+  usage['start'][0] = "\ttim start ((-c|--client ClientName)|(-s|--short ShortKey)) -t|--title Title [--description Description] [--start StartTime]";
 
   usage['status'] = new Array();
   usage['status'][0] = "\ttim status";
 
   usage['stop'] = new Array();
   usage['stop'][0] = "\ttim stop [--end EndTime]";
+
+	usage['list'] = new Array();
+	usage['list'][0] = "\ttim list [filters]";
 
   // output usage / help
   console.log("Usage - incomplete but please go ahead and read what's already there:\n");
@@ -391,7 +407,7 @@ function asTable() {
   }
 
   // validate arguments: keys
-  if (!keyList || keyList.length === 0) {
+  if (!keyList || keyList.length === 0 || (keyList.length === 1 && keyList[0] === "*")) {
     for (var key in objectArray[0]) {
       if (typeof key !== 'function') keyList.push(key);
     }
