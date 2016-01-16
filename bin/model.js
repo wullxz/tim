@@ -5,7 +5,11 @@ module.exports = function (dbpath, debugoutput) {
 	var sqlite3 = require('sqlite3').verbose();
 	var moment = require('moment');
 	require('moment-duration-format'); // duration format addon for momentjs
+	var util = require('bin/util.js');
 	var db  = new sqlite3.Database(dbpath);
+	// make all util functions global
+	for (var key in util)
+		global[key] = util[key];
 	//model.db = db;
 
 	/**
@@ -373,14 +377,6 @@ module.exports = function (dbpath, debugoutput) {
   Qry.prototype.qry = function () {
     return this._qry;
   }
-
-	/**
-	 * convenience method to write output only if debugging is enabled for this module
-	 */
-	function debuglog(msg) {
-		if (debug)
-			console.log("[DEBUG] " + msg + "\n");
-	}
 
 	return model;
 }
