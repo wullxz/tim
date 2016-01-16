@@ -57,7 +57,6 @@ module.exports = function (dbpath, debugoutput) {
 			var invoices = "CREATE TABLE IF NOT EXISTS Invoices (";
 			invoices = qB(invoices, "		id INTEGER PRIMARY KEY,");
 			invoices = qB(invoices, "		date DATETIME,");
-			invoices = qB(invoices, "		ClientId INTEGER,");
 			invoices = qB(invoices, "		fk_invoiceclient INTEGER,");
 			invoices = qB(invoices, "		FOREIGN KEY(fk_invoiceclient) REFERENCES Clients(id));");
 			db.run(invoices, [], function(err, result) {
