@@ -38,18 +38,21 @@ var dbopen = false;
 var datadir = process.env.timdata || argv.datadir || conf.datadir || path.join(HOME, '.tim');
 var dblogging = console.log;
 var dbname = 'db.sqlite';
-if (argv._[0] !== "init") {
-	var m = require('./model.js')(path.join(datadir, dbname), debug);
-}
+
 
 
 /**
  *  processes commandline args
  */
 function proc(argv) {
-
-
   var verb = argv._[0];
+	var m = {};
+	// initialize m var if verb != init
+	if (verb !== "init") {
+		debuglog('DB: ' + path.join(datadir, dbname));
+		m = require('./model.js')(path.join(datadir, dbname), debug);
+	}
+
   if (argv.h) {
     usage(0);
   }
@@ -163,7 +166,6 @@ function proc(argv) {
       }
     });
   }
-
   // ##### STATUS ####
   // print status of time measurement
   else if (verb === 'status') {
