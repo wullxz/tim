@@ -14,6 +14,10 @@ var os = require('os');
 var tmpdir = (os.tmpdir || os.tmpDir)();
 var printf = require('sprintf-js').sprintf;
 var rls = require('readline-sync');
+var util = require('bin/util.js');
+// make all functions from util.js global
+for (var key in util)
+		global[key] = util[key];
 
 // parse commandline args
 var argv = minimist(process.argv.slice(2), {
