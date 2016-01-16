@@ -21,21 +21,23 @@ module.exports = function (dbpath, debugoutput) {
 	model.initDb = function() {
 		//TODO: init database structure
 		function createClients(callback) {
-			var cli	 = "CREATE TABLE IF NOT EXISTS Clients (";
-			cli = qB(cli, "		id INTEGER PRIMARY KEY AUTOINCREMENT,");
-			cli = qB(cli, "		name TEXT,");
-			cli = qB(cli, "		street1 TEXT,");
-			cli = qB(cli, "		street2 TEXT,");
-			cli = qB(cli, "		zip TEXT,");
-			cli = qB(cli, "		city TEXT,");
-      cli = qB(cli, "   email TEXT,");
-			cli = qB(cli, "		short TEXT UNIQUE);");
-			db.run(cli, [], function(err, result) {
+			var qry = new Qry();
+			qry.name = "Create: Clients";
+			qry.add("CREATE TABLE IF NOT EXISTS Clients (");
+			qry.add("		id INTEGER PRIMARY KEY AUTOINCREMENT,");
+			qry.add("		name TEXT,");
+			qry.add("		street1 TEXT,");
+			qry.add("		street2 TEXT,");
+			qry.add("		zip TEXT,");
+			qry.add("		city TEXT,");
+      qry.add("   email TEXT,");
+			qry.add("		short TEXT UNIQUE);");
+			db.run(qry.qry(), [], function(err, result) {
 				if (err) {
 					debuglog("Error running query:\n" + cli + "\n\nErrors:\n" + err);
 				}
 				else
-					debuglog("Query successful!");
+					debuglog("Query " + qry.name + " successful!");
 				if (result)
 					debuglog("Results:\n" + result);
 
@@ -44,12 +46,14 @@ module.exports = function (dbpath, debugoutput) {
 		}
 
 		function createClientsIndex(callback) {
-			var cliU = "CREATE UNIQUE INDEX IF NOT EXISTS clientShort ON Clients(short);";
-			db.run(cliU, [], function(err, result) {
+			var qry = new Qry();
+			qry.name = "Create: Clients Index";
+			qry.add("CREATE UNIQUE INDEX IF NOT EXISTS clientShort ON Clients(short);");
+			db.run(qry.qry(), [], function(err, result) {
 				if (err)
-					debuglog("Error running query:\n" + cliU + "\n\nErrors:\n" + err);
+					debuglog("Error running query:\n" + qry.qry() + "\n\nErrors:\n" + err);
 				else
-					debuglog("Query successful!");
+					debuglog("Query " + qry.name + " successful!");
 				if (result)
 					debuglog("Results:\n" + result);
 
@@ -58,16 +62,18 @@ module.exports = function (dbpath, debugoutput) {
 		}
 
 		function createInvoices(callback) {
-			var invoices = "CREATE TABLE IF NOT EXISTS Invoices (";
-			invoices = qB(invoices, "		id INTEGER PRIMARY KEY,");
-			invoices = qB(invoices, "		date DATETIME,");
-			invoices = qB(invoices, "		fk_invoiceclient INTEGER,");
-			invoices = qB(invoices, "		FOREIGN KEY(fk_invoiceclient) REFERENCES Clients(id));");
-			db.run(invoices, [], function(err, result) {
+			var qry = new Qry();
+			qry.name = "Create: Invoices";
+			qry.add("CREATE TABLE IF NOT EXISTS Invoices (");
+			qry.add("		id INTEGER PRIMARY KEY,");
+			qry.add("		date DATETIME,");
+			qry.add("		fk_invoiceclient INTEGER,");
+			qry.add("		FOREIGN KEY(fk_invoiceclient) REFERENCES Clients(id));");
+			db.run(qry.qry(), [], function(err, result) {
 				if (err)
-					debuglog("Error running query:\n" + invoices + "\n\nErrors:\n" + err);
+					debuglog("Error running query:\n" + qry.qry() + "\n\nErrors:\n" + err);
 				else
-					debuglog("Query successful!");
+					debuglog("Query " + qry.name + " successful!");
 				if (result)
 					debuglog("Results:\n" + result);
 
@@ -76,20 +82,22 @@ module.exports = function (dbpath, debugoutput) {
 		}
 
 		function createInvoicePos(callback) {
-			var invoicepos = "CREATE TABLE IF NOT EXISTS InvoicePos (";
-			invoicepos = qB(invoicepos, "		id INTEGER PRIMARY KEY,");
-			invoicepos = qB(invoicepos, "		title TEXT,");
-			invoicepos = qB(invoicepos, "		quantity NUMERIC,");
-			invoicepos = qB(invoicepos, "		value NUMERIC,");
-			invoicepos = qB(invoicepos, "		description TEXT,");
-      invoicepos = qB(invoicepos, "   invoiced INTEGER DEFAULT 0,");
-			invoicepos = qB(invoicepos, "		fk_invoiceposinvoice INTEGER,");
-			invoicepos = qB(invoicepos, "		FOREIGN KEY(fk_invoiceposinvoice) REFERENCES Invoice(id));");
-			db.run(invoicepos, [], function(err, result) {
+			var qry = new Qry();
+			qry.name = "Create: InvoicePos";
+			qry.add("CREATE TABLE IF NOT EXISTS InvoicePos (");
+			qry.add("		id INTEGER PRIMARY KEY,");
+			qry.add("		title TEXT,");
+			qry.add("		quantity NUMERIC,");
+			qry.add("		value NUMERIC,");
+			qry.add("		description TEXT,");
+      qry.add("   invoiced INTEGER DEFAULT 0,");
+			qry.add("		fk_invoiceposinvoice INTEGER,");
+			qry.add("		FOREIGN KEY(fk_invoiceposinvoice) REFERENCES Invoice(id));");
+			db.run(qry.qry(), [], function(err, result) {
 				if (err)
-					debuglog("Error running query:\n" + invoicepos + "\n\nErrors:\n" + err);
+					debuglog("Error running query:\n" + qry.qry() + "\n\nErrors:\n" + err);
 				else
-					debuglog("Query successful!");
+					debuglog("Query " + qry.name + " successful!");
 				if (result)
 					debuglog("Results:\n" + result);
 
@@ -98,23 +106,25 @@ module.exports = function (dbpath, debugoutput) {
 		}
 
 		function createTimes(callback) {
-			var times = "CREATE TABLE IF NOT EXISTS Times (";
-			times = qB(times, "		id INTEGER PRIMARY KEY AUTOINCREMENT,");
-			times = qB(times, "		start DATETIME,");
-			times = qB(times, "		end DATETIME,");
-			times = qB(times, "		title TEXT,");
-			times = qB(times, "		description TEXT,");
-			times = qB(times, "		invoiced INTEGER DEFAULT 0,");
-			times = qB(times, "		archived INTEGER DEFAULT 0,");
-			times = qB(times, "		fk_timesclient INTEGER,");
-			times = qB(times, "		fk_timesinvoicepos INTEGER,");
-			times = qB(times, "		FOREIGN KEY(fk_timesclient) REFERENCES Clients(id),");
-			times = qB(times, "		FOREIGN KEY(fk_timesinvoicepos) REFERENCES InvoicePos(id));");
-			db.run(times, [], function(err, result) {
+			var qry = new Qry();
+			qry.name = "Create: Times";
+			qry.add("CREATE TABLE IF NOT EXISTS Times (");
+			qry.add("		id INTEGER PRIMARY KEY AUTOINCREMENT,");
+			qry.add("		start DATETIME,");
+			qry.add("		end DATETIME,");
+			qry.add("		title TEXT,");
+			qry.add("		description TEXT,");
+			qry.add("		invoiced INTEGER DEFAULT 0,");
+			qry.add("		archived INTEGER DEFAULT 0,");
+			qry.add("		fk_timesclient INTEGER,");
+			qry.add("		fk_timesinvoicepos INTEGER,");
+			qry.add("		FOREIGN KEY(fk_timesclient) REFERENCES Clients(id),");
+			qry.add("		FOREIGN KEY(fk_timesinvoicepos) REFERENCES InvoicePos(id));");
+			db.run(qry.qry(), [], function(err, result) {
 				if (err)
-					debuglog("Error running query:\n" + times + "\n\nErrors:\n" + err);
+					debuglog("Error running query:\n" + qry.qry() + "\n\nErrors:\n" + err);
 				else
-					debuglog("Query successful!");
+					debuglog("Query " + qry.name + " successful!");
 				if (result)
 					debuglog("Results:\n" + result);
 
@@ -122,6 +132,7 @@ module.exports = function (dbpath, debugoutput) {
 			});
 		}
 
+		//TODO: is this really needed?
     function createStaging(callback) {
       var qry = new Qry();
       qry.add("CREATE TABLE IF NOT EXISTS Staging (");
@@ -146,7 +157,7 @@ module.exports = function (dbpath, debugoutput) {
 				createInvoicePos,
 				createTimes
 		], function(err, result) {
-			debuglog("Done creating database.");
+			console.log("Done creating database.");
 		});
 	};
 
