@@ -20,21 +20,23 @@ var argv = minimist(process.argv.slice(2), {
   alias: { v: 'verbose', h: 'help', c: 'client', s: 'short', t: 'title', d: 'description', f: 'filter' }
 });
 
-// create data directory and config
-var dbopen = false;
-var HOME = process.env.HOME || process.env.USERPROFILE;
-var datadir = process.env.timdata || argv.datadir || path.join(HOME, '.tim');
-mkdirp.sync(datadir);
+// open config
 var confpath = path.join(HOME, 'settings.json');
 var conf;
 try { conf = fs.statSync(confpath) } catch (err) { conf = { isFile: function () { return false; } } }
 conf = (conf.isFile()) ? fs.readFileSync(confpath, { encoding: 'utf8' }).toString() : "";
 conf = (conf.trim() === "") ? {} : JSON.parse(conf);
 
-//TODO: make this setting accessable for the user in order to let him save it in dropbox or so
+
+// create data directory and config
+var dbopen = false;
+var HOME = process.env.HOME || process.env.USERPROFILE;
+var datadir = process.env.timdata || argv.datadir || conf.datadir || path.join(HOME, '.tim');
 var dblogging = console.log;
 var dbname = 'db.sqlite';
-var m = require('./model.js')(path.join(datadir, dbname), debug);
+if (argv._[0] !== "init") {
+	var m = require('./model.js')(path.join(datadir, dbname), debug);
+}
 
 
 /**
@@ -320,7 +322,13 @@ function proc(argv) {
 
 
   else if (verb === 'init') {
+		if (argv.datadir || process.env.timdata) {
+			datadir = argv.datadir || process.env.timdata;
+		}
+		mkdirp.sync(datadir);
+		var m = require('./model.js')(path.join(datadir, dbname), debug);
     m.initDb();
+		conf.datadir = datadir;
 		conf.hourlyDefaultWage = rls.question("What will be your default hourly wage? ");
 		saveConfig();
   }
@@ -525,7 +533,7 @@ function asTable() {
 
 function debuglog(str) {
   if (debug)
-    console.log("[DEBUG] " + str + "\n");
+    console.log("[DEBUG] " + str);
 }
 
 function stripNull(str) {
