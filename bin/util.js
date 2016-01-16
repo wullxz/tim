@@ -1,18 +1,18 @@
 module.exports = function() {
-	var model = {};
+	var utils = {};
 
-	model.debuglog = function(str) {
+	utils.debuglog = function(str) {
 		if (debug)
 			console.log("[DEBUG] " + str);
 	}
 
 
-	model.stripNull = function(str) {
+	utils.stripNull = function(str) {
 		if (typeof str === 'undefined' || str === null)
 			return "";
 		else
 			return str;
 	}
 
-	return model;
+	return utils;
 }()
