@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-var debug = true;
+global['debug'] = true;
 
 // include packages
 var fs = require('fs');
@@ -14,10 +14,10 @@ var os = require('os');
 var tmpdir = (os.tmpdir || os.tmpDir)();
 var printf = require('sprintf-js').sprintf;
 var rls = require('readline-sync');
-var util = require('bin/util.js');
+var utils = require('./util.js');
 // make all functions from util.js global
-for (var key in util)
-		global[key] = util[key];
+for (var key in utils)
+		global[key] = utils[key];
 
 // parse commandline args
 var argv = minimist(process.argv.slice(2), {
@@ -25,6 +25,7 @@ var argv = minimist(process.argv.slice(2), {
 });
 
 // open config
+var HOME = process.env.HOME || process.env.USERPROFILE;
 var confpath = path.join(HOME, 'settings.json');
 var conf;
 try { conf = fs.statSync(confpath) } catch (err) { conf = { isFile: function () { return false; } } }
@@ -34,7 +35,6 @@ conf = (conf.trim() === "") ? {} : JSON.parse(conf);
 
 // create data directory and config
 var dbopen = false;
-var HOME = process.env.HOME || process.env.USERPROFILE;
 var datadir = process.env.timdata || argv.datadir || conf.datadir || path.join(HOME, '.tim');
 var dblogging = console.log;
 var dbname = 'db.sqlite';
@@ -317,12 +317,15 @@ function proc(argv) {
 
   // ##### TEST ####
   // for testing stuff
-  else if (verb === 'test') {
+  else if (verb === 'invoicetest') {
     var inv = require('./invoice.js')("./tpl/invoice.ejs");
     var cli = { "name": "Kunde", "street1": "Kundenstraße 15", "street2": "Apartment 1a", "zip": 55411, "city": "Bingen" };
     var pos = [{ "title": "Programmierung", "quantity": 5, "value": 20, "description": "code tests" }, { "title": "Programmierung", "quantity": 5, "value": 20, "description": "code tests" }];
     inv.create(cli, pos, 10, new Date());
   }
+	else if (verb === 'test') {
+		utils.debuglog('util test');
+	}
 
 
   else if (verb === 'init') {

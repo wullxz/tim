@@ -5,11 +5,11 @@ module.exports = function (dbpath, debugoutput) {
 	var sqlite3 = require('sqlite3').verbose();
 	var moment = require('moment');
 	require('moment-duration-format'); // duration format addon for momentjs
-	var util = require('bin/util.js');
+	var utils = require('./util.js');
 	var db  = new sqlite3.Database(dbpath);
 	// make all util functions global
-	for (var key in util)
-		global[key] = util[key];
+	for (var key in utils)
+		global[key] = utils[key];
 	//model.db = db;
 
 	/**
