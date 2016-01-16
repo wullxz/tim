@@ -23,9 +23,9 @@ var argv = minimist(process.argv.slice(2), {
 // create data directory and config
 var dbopen = false;
 var HOME = process.env.HOME || process.env.USERPROFILE;
-var datadir = argv.datadir || path.join(HOME, '.tim');
+var datadir = process.env.timdata || argv.datadir || path.join(HOME, '.tim');
 mkdirp.sync(datadir);
-var confpath = path.join(datadir, 'settings.json');
+var confpath = path.join(HOME, 'settings.json');
 var conf;
 try { conf = fs.statSync(confpath) } catch (err) { conf = { isFile: function () { return false; } } }
 conf = (conf.isFile()) ? fs.readFileSync(confpath, { encoding: 'utf8' }).toString() : "";
@@ -33,8 +33,7 @@ conf = (conf.trim() === "") ? {} : JSON.parse(conf);
 
 //TODO: make this setting accessable for the user in order to let him save it in dropbox or so
 var dblogging = console.log;
-var dbname = (process.env.DEV) ? 'db.dev.sqlite' : 'db.sqlite';
-debuglog("dbname: " + dbname);
+var dbname = 'db.sqlite';
 var m = require('./model.js')(path.join(datadir, dbname), debug);
 
 
