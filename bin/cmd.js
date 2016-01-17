@@ -241,7 +241,7 @@ function proc(model, argv) {
 		if (what === "times") {
 			var client = argv.c || argv.s;
 			var filter = [
-				["invoiced", 0],
+				["fk_InvoicePos is null"],
 				["archived", 0],
 				["end not null"]
 			];
@@ -252,7 +252,7 @@ function proc(model, argv) {
 				filter.push(["shortKey", argv.s]);
 			}
 
-			m.Time.list(filter, function(err, rows) {
+			model.Time.list(filter, function(err, rows) {
 				if (err)
 					throw err;
 

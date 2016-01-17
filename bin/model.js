@@ -343,27 +343,49 @@ module.exports = function (dbpath, debugoutput) {
 
 	}
 
-	model.InvoicePos.create = function (times) {
+	model.InvoicePos.create = function (times, quantity, value, title, description, callback) {
 		if (times.constructor !== Array || times.length == 0)
 			throw "times parameter must be an array of Time IDs or model.Time instances!";
 
-		// get all time records from database
-		var tobjs = [];         // list of time objects
-		var qry = "select * from times where id=$id";
-		db.serialize(function() { // need to serialize database queries!
-			for (var i=0; i<times.length; i++) {
-				if (times[i] instanceof model.Time) {
-					tobjs.push(times[i]);
-				}
-				else {
-					var st = db.prepare(qry);
-					st.get([{"$id": times[i]}], function (err, row) {
-						if (err)
-							throw "There was an error retreiving all time records from the database! ID: " + times[i];
+		var clientId;
+		var qry = "select * from Times where id in (" + times.join(',') + ") group by fk_Clients;";
+		var st = db.prepare(qry);
+		st.all({}, function(err, rows) {
+			if (err)
+				return callback('Error during Times-Check:\n' + err);
 
-						tobjs.push(row);
-					});
+			if (rows.length != 1) {
+				callback('Those Time IDs matched more than one client!');
+				return;
+			}
+			else {
+				clientId = rows[0].fk_Clients;
+
+				// insert new invoice position
+				var qry = "insert into InvoicePos (title, quantity, value, description, fk_Clients) values ($title, $quantity, $value, $description, $fk_Clients);";
+				var params = {
+					$title: title,
+					$quantity: quantity,
+					$value: value,
+						$description: description,
+						$fk_Clients: clientId
 				}
+				var st = db.prepare(qry);
+				st.run(params, function (err) {
+					if (err)
+						return callback('Error while inserting new invoice position:\n' + err);
+
+					// update times records to have the InvoicePos ID in them
+					var invposId = this.lastID;
+					var qry = "update Times set fk_InvoicePos = $id where id in (" + times.join(',') + ");";
+					var st = db.prepare(qry);
+					st.run({$id: invposId}, function (err) {
+						if (err)
+							return callback('Error during update of times records\n' + err);
+
+						console.log("Invoice position with id " + invposId + " sucessfully created!");
+					});
+				});
 			}
 		});
 	}
