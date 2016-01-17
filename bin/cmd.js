@@ -182,7 +182,7 @@ function proc(model, argv) {
                            "Since:",
                            moment(data.row.start).format('llll'),
                            "Duration:",
-                           data.diff.format('H [h] model [min] s [sec]')));
+                           data.diffstr));
       }
       else {
         console.log("No time tracking running!");
@@ -297,6 +297,8 @@ function proc(model, argv) {
 				var description = rls.question("Description for this position (optional): ");
 				var value = rls.question("Value per hour (" + hourlyWage + "): ") | hourlyWage;
 				var quantity = rls.question("Quantity (" + Math.ceil(quantity) + "): ") | Math.ceil(quantity);
+
+				model.InvoicePos.create(ids, quantity, value, title, description);
 
 				console.log("Choices:\n"+title+"\n"+description+"\n"+value+"\n"+quantity);
 			});
