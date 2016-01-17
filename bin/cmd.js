@@ -310,9 +310,8 @@ function proc(model, argv) {
 				var value = rls.question("Value per hour (" + hourlyWage + "): ") | hourlyWage;
 				var quantity = rls.question("Quantity (" + Math.ceil(quantity) + "): ") | Math.ceil(quantity);
 
+				// save changes!
 				model.InvoicePos.create(ids, quantity, value, title, description);
-
-				console.log("Choices:\n"+title+"\n"+description+"\n"+value+"\n"+quantity);
 			});
 		}
 		else if (what === "pos") {
