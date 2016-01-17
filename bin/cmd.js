@@ -26,32 +26,28 @@ var argv = minimist(process.argv.slice(2), {
 
 // open config
 var HOME = process.env.HOME || process.env.USERPROFILE;
+HOME = path.join(HOME, ".tim/");
 var confpath = path.join(HOME, 'settings.json');
-var conf;
-try { conf = fs.statSync(confpath) } catch (err) { conf = { isFile: function () { return false; } } }
+var conf = false;
+try { conf = fs.statSync(confpath) } catch (err) { }
 conf = (conf.isFile()) ? fs.readFileSync(confpath, { encoding: 'utf8' }).toString() : "";
 conf = (conf.trim() === "") ? {} : JSON.parse(conf);
 
 
 // create data directory and config
 var dbopen = false;
-var datadir = process.env.timdata || argv.datadir || conf.datadir || path.join(HOME, '.tim');
+var datadir = process.env.timdata || argv.datadir || conf.datadir || HOME;
 var dblogging = console.log;
 var dbname = 'db.sqlite';
-
+var model = require('./model.js')(path.join(datadir, dbname)); // model variable
 
 
 /**
  *  processes commandline args
  */
-function proc(argv) {
-  var verb = argv._[0];
-	var m = {};
-	// initialize m var if verb != init
-	if (verb !== "init") {
-		debuglog('DB: ' + path.join(datadir, dbname));
-		m = require('./model.js')(path.join(datadir, dbname), debug);
-	}
+function proc(model, argv) {
+	var verb = argv._[0];
+	//m = require('./model.js')(path.join(datadir, dbname));
 
   if (argv.h) {
     usage(0);
@@ -111,7 +107,7 @@ function proc(argv) {
         console.log("Please supply at least a name for the new customer!");
         process.exit(-1);
       }
-      m.Client.create({
+      model.Client.create({
         $name: argv.name,
         $street1: argv.street1 || "",
         $zip: argv.zip+"" || "",
@@ -169,7 +165,7 @@ function proc(argv) {
   // ##### STATUS ####
   // print status of time measurement
   else if (verb === 'status') {
-    m.Time.status(function (err, data) {
+    model.Time.status(function (err, data) {
       if (err)
         console.log("There was an error while querying for actual status: " + err);
 
@@ -186,7 +182,7 @@ function proc(argv) {
                            "Since:",
                            moment(data.row.start).format('llll'),
                            "Duration:",
-                           data.diff.format('H [h] m [min] s [sec]')));
+                           data.diff.format('H [h] model [min] s [sec]')));
       }
       else {
         console.log("No time tracking running!");
@@ -199,7 +195,7 @@ function proc(argv) {
   else if (verb === 'stop') {
     var end = (argv.end) ? new Date(argv.end) : new Date();
 
-    m.Time.stop(end, function(err) {
+    model.Time.stop(end, function(err) {
       if (err)
         console.log("There was an error ending the timetracking:\n" + err);
     });
@@ -213,7 +209,7 @@ function proc(argv) {
       var filts = JSON.parse(argv.f);
     }
 
-    m.Time.list(filts, function(err, rows) {
+    model.Time.list(filts, function(err, rows) {
       if (err)
         throw err;
 
@@ -331,12 +327,12 @@ function proc(argv) {
 
 
   else if (verb === 'init') {
-		if (argv.datadir || process.env.timdata) {
-			datadir = argv.datadir || process.env.timdata;
+		if (process.env.timdata || argv.datadir) {
+			datadir = process.env.timdata || argv.datadir;
 		}
 		mkdirp.sync(datadir);
-		var m = require('./model.js')(path.join(datadir, dbname), debug);
-    m.initDb();
+		var model = require('./model.js')(path.join(datadir, dbname), debug);
+    model.initDb();
 		conf.datadir = datadir;
 		conf.hourlyDefaultWage = rls.question("What will be your default hourly wage? ");
 		saveConfig();
@@ -368,7 +364,7 @@ function timeTrack(client, title, description, date, action) {
 
   //debuglog('\nClient object:\n', JSON.stringify(client, null, 2));
   if (action === 'start') {
-    m.Time.start(client, title, description, date, function (err) {
+    model.Time.start(client, title, description, date, function (err) {
       if (err)
         throw err;
       else
@@ -388,12 +384,12 @@ function getClient(spattern, stype, callback) {
   // search for client name
   if (stype==='name') {
     debuglog("searching client by name: " + spattern);
-    m.Client.findByName({ $name: spattern	}, callback)
+    model.Client.findByName({ $name: spattern	}, callback)
   }
   // search for short code
   else if (stype==='short') {
     debuglog("searching client by shortkey:" + spattern);
-    m.Client.findByKey({ $short: spattern }, callback);
+    model.Client.findByKey({ $short: spattern }, callback);
   }
   else {
     console.log("Not a valid search option: " + stype);
@@ -405,7 +401,8 @@ function getClient(spattern, stype, callback) {
  * saves the configuration
  */
 function saveConfig() {
-  fs.writeFileSync(confpath, JSON.stringify(conf), { encoding: 'utf8' }, function (err) {
+	console.log("Saving config to " + confpath);
+  fs.writeFileSync(confpath, JSON.stringify(conf, null, 2), { encoding: 'utf8' }, function (err) {
     if (err) throw err;
     console.log('Config saved!');
   });
@@ -540,4 +537,4 @@ function asTable() {
   });
 }
 
-proc(argv);
+proc(model, argv);
