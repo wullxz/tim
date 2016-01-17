@@ -224,7 +224,7 @@ module.exports = function (dbpath, debugoutput) {
 	 * Time model
 	 */
 
-	model.Time = function (id, start, end, title, description, invoiced, archived, fk_timesclient, fk_timesinvoicepos) {
+	model.Time = function (id, start, end, title, description, invoiced, archived, fk_Clients, fk_InvoicePos) {
 		this.id = id;
 		this.start = start;
 		this.end = end;
@@ -232,14 +232,14 @@ module.exports = function (dbpath, debugoutput) {
 		this.description = description;
 		this.invoiced = invoiced;
 		this.archived = archived;
-		this.fk_timesclient = fk_timesclient;
-		this.fk_timesinvoicepos = fk_timesinvoicepos;
+		this.fk_Clients = fk_Clients;
+		this.fk_InvoicePos = fk_InvoicePos;
 	}
 
 	model.Time.start = function (client, title, description, start, callback) {
 		if (!client || !title || !start)
 			throw "Wrong parameters!";
-		var st = db.prepare("INSERT INTO Times (fk_timesclient, title, description, start) VALUES ($client, $title, $description, $start);");
+		var st = db.prepare("INSERT INTO Times (fk_Clients, title, description, start) VALUES ($client, $title, $description, $start);");
 
 		if (client instanceof Array && client.length == 1)
 			client = client[0]; // array given but only one item in array... taking it!
@@ -251,7 +251,7 @@ module.exports = function (dbpath, debugoutput) {
 	}
 
 	model.Time.status = function (callback) {
-		var st = db.prepare("SELECT t.*, c.id clientid, c.name clientname FROM Times t JOIN Clients c ON t.fk_timesclient=c.id WHERE end IS NULL" );
+		var st = db.prepare("SELECT t.*, c.id clientid, c.name clientname FROM Times t JOIN Clients c ON t.fk_Clients=c.id WHERE end IS NULL" );
 
 		st.get([], function (err, row)  {
 			if (!err && row) {
@@ -288,7 +288,7 @@ module.exports = function (dbpath, debugoutput) {
 			throw "filters parameter must be an array or null";
 
 		// base query
-		var qry = "select t.*, c.id clientid, c.name clientname, c.short shortKey from Times t JOIN Clients c ON t.fk_timesclient=c.id";
+		var qry = "select t.*, c.id clientid, c.name clientname, c.short shortKey from Times t JOIN Clients c ON t.fk_Clients=c.id";
 
 		// process filters
 		var params = {};
