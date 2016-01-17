@@ -184,13 +184,12 @@ module.exports = function (dbpath, debugoutput) {
 
 	model.Client.create = function (client, callback) {
 		var st = db.prepare("INSERT INTO Clients (name, street1, street2, zip, city, short) VALUES ($name, $street1, $street2, $zip, $city, $short)");
-		debuglog("trying to bind these values:\n" + JSON.stringify(client, null, 2));
 		st.run(client, function (err) {
 			if (err) {
 				console.log(err);
 			}
 			else {
-				console.log(this);
+				console.log('Client ' + client.$name + ' saved successfully!');
 			}
 
 			// callback!
@@ -327,6 +326,11 @@ module.exports = function (dbpath, debugoutput) {
 				// calc duration
 				var start = new Date(row.start);
 				var end = new Date(row.end);
+				if (row.end === null) { // in case time tracking isn't finished
+					row.end = '- running -';
+					end = new Date();
+				}
+
 				row.diffstr = moment.duration(moment(end).diff(start)).format('H [hours] m [minutes] s [seconds]');
 				row.diff = moment.duration(moment(end).diff(start));
 			}

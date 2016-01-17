@@ -21,7 +21,7 @@ for (var key in utils)
 
 // parse commandline args
 var argv = minimist(process.argv.slice(2), {
-  alias: { v: 'verbose', h: 'help', c: 'client', s: 'short', t: 'title', d: 'description', f: 'filter' }
+	alias: { v: 'verbose', h: 'help', c: 'client', s: 'short', t: 'title', d: 'description', f: 'filter', street: 'street1' }
 });
 
 // open config
@@ -215,7 +215,9 @@ function proc(model, argv) {
 
       rows.map(function (r) {
         r.start = moment(r.start).format("llll");
-        r.end = moment(r.end).format("llll");
+				if (r.end !== '- running -') {
+					r.end = moment(r.end).format("llll");
+				}
       });
 
       var cols = [];
@@ -223,7 +225,7 @@ function proc(model, argv) {
         cols = argv.columns.split(',');
 			}
       else {
-        cols = ["start", "end", "title", "invoiced", "archived", "clientname", "diffstr"];
+        cols = ["start", "end", "title", "archived", "clientname", "diffstr"];
 			}
 
       cols.unshift(rows);
