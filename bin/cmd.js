@@ -206,8 +206,14 @@ function proc(model, argv) {
   else if (verb === 'list') {
     var filts = null;
     if (argv.f) {
-      var filts = JSON.parse(argv.f);
+      filts = JSON.parse(argv.f);
     }
+		else {
+			filts = [
+				["archived", 0],
+				["fk_InvoicePos is null"]
+			];
+		}
 
     model.Time.list(filts, function(err, rows) {
       if (err)
@@ -225,7 +231,7 @@ function proc(model, argv) {
         cols = argv.columns.split(',');
 			}
       else {
-        cols = ["start", "end", "title", "archived", "clientname", "diffstr"];
+        cols = ["start", "end", "title", ["fk_InvoicePos", "invoice pos"], "archived", "clientname", "diffstr"];
 			}
 
       cols.unshift(rows);
@@ -500,7 +506,7 @@ function asTable() {
     if (key.constructor === Array) {
       keys.push(key[0]);
       keydict[key[0]] = key[1];
-      maxlength[key] = String(key[1]).length;
+      maxlength[key[0]] = String(key[1]).length;
     }
     else {
       keys.push(key);
