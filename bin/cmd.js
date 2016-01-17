@@ -293,10 +293,16 @@ function proc(model, argv) {
 					rows.forEach(function (item) {
 						if (ids.indexOf(item.id)>=0) {
 							times.push(item);
-							quantity += item.diff.asHours();
 						}
 					});
 				}
+
+				// calculate totals
+				rows.forEach(function (row) {
+					if (ids.indexOf(row.id)>=0) {
+						quantity += row.diff.asHours();
+					}
+				});
 
 				// ask for other stuff
 				var title = rls.question("Title for this position: ");
