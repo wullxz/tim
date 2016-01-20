@@ -79,9 +79,9 @@ function proc(model, argv) {
           console.log(err);
           process.exit(-1);
         }
-        if (typeof clients == 'undefined' || ! clients) {
+        if (!clients || (clients.constructor === Array && clients.length === 0)) {
           console.log('No clients with that name or short-code found!\n');
-          return 0;
+          process.exit(-1);
         }
 
         console.log(printf("%-5s | %-15s | %-20s | %-6s | %-20s | %-10s", "ID", "Name", "Street 1", "Zip", "City", "Shortkey"));
@@ -138,17 +138,17 @@ function proc(model, argv) {
 
 
 		getClient(search, function(err, clients) {
-      if (err) {
-        console.log(err);
-        process.exit(-1);
-      }
+			if (err) {
+				console.log(err);
+				process.exit(-1);
+			}
 
-      if (typeof clients === 'undefined' || clients === null) {
-        console.log("No clients with that search pattern found!");
-        process.exit(-1);
-      }
+			if (!clients || (clients.constructor === Array && clients.length === 0)) {
+				console.log('No clients with that name or short-code found!\n');
+				process.exit(-1);
+			}
 
-      if (clients.length > 1) {
+			if (clients.length > 1) {
 				selectFromList(clients, null, function(err, result) {
 					if (err) {
 						console.log("Error selecting a client:\n" + err);
@@ -161,7 +161,7 @@ function proc(model, argv) {
 
 			debuglog("Selected client:\n" + JSON.stringify(clients, null, 2));
 
-      timeTrack(clients, argv.t, argv.d, argv.start);
+      startTimeTracking(clients, argv.t, argv.d, argv.start);
     });
   }
   // ##### STATUS ####
@@ -237,7 +237,7 @@ function proc(model, argv) {
 			}
 
       cols.unshift(rows);
-      utils.asTable.apply(this, cols);
+      asTable.apply(this, cols);
     });
   }
 
@@ -365,31 +365,24 @@ function proc(model, argv) {
  * - client
  * - title
  */
-function timeTrack(client, title, description, date, action) {
-  action = typeof action === 'undefined' ? "start" : action;
-  if (typeof client === 'undefined' || client === null)
+function startTimeTracking(client, title, description, date) {
+  if (!client)
     throw "Please specify a client to track the time for!";
-  if (typeof title === 'undefined' || title === null)
+  if (!title)
     throw "You need to specify a title!";
-  description = typeof description !== 'undefined' ? description : null;
+  description = description || null;
 
   // parse date here
-  date = typeof date !== 'undefined' ? new Date(date) : new Date();
+  date = (!date) ? new Date(date) : new Date();
   if (!(date instanceof Date || date.toString() === "Invalid Date"))
     throw "This is not a valid Date";
 
-  //debuglog('\nClient object:\n', JSON.stringify(client, null, 2));
-  if (action === 'start') {
-    model.Time.start(client, title, description, date, function (err) {
-      if (err)
-        throw err;
-      else
-        console.log("insert successful!");
-    });
-  }
-  else if (action === 'stop') {
-    //TODO implement
-  }
+	model.Time.start(client, title, description, date, function (err) {
+		if (err)
+			throw err;
+		else
+			console.log("Time tracking started for ", client.name, "!");
+	});
 }
 
 /**
