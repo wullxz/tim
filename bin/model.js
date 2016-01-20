@@ -343,6 +343,20 @@ module.exports = function (dbpath, debugoutput) {
 
 	}
 
+	model.InvoicePos.listByClient = function (clientId, callback) {
+		if (!clientId && clientId != 0)
+			throw "Parameter error: ClientId must be a number";
+
+		var qry = "select * from InvoicePos where fk_Clients = $id";
+		var st = db.prepare(qry);
+		st.all({$id: clientId}, function (err, rows) {
+			if (err)
+				return callback("Error retreiving Invoice Positions from db:", err);
+
+			callback(err, rows);
+		});
+	}
+
 	model.InvoicePos.create = function (times, quantity, value, title, description, callback) {
 		if (times.constructor !== Array || times.length == 0)
 			throw "times parameter must be an array of Time IDs or model.Time instances!";
@@ -430,7 +444,6 @@ module.exports = function (dbpath, debugoutput) {
 				});
 			});
 		});
-	}
 	}
 
 	/*
