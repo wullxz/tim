@@ -85,15 +85,16 @@ module.exports = function() {
 		// arguments:
 		// data.rows: an array of objects that need to be displayed
 		// data.keyList: object of keys of those objects that should be displayed
-		//		example keyList obj:
-		//		keyList = {
-		//			name: {
-		//				alias: "Name",
+		//		example keyList array:
+		//		keyList = [
+		//			{
+		//				name: "clientname"
+		//				alias: "Client name",
 		//				stripNull: true,
-		//				format: string,
-		//				align: right
+		//				format: "s",
+		//				align: "left"
 		//			}
-		//		}
+		//		]
 		// data.options: TODO
 		var dataRows = data.rows;
 		var keyList = data.keyList || null;
