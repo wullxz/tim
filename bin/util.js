@@ -150,5 +150,24 @@ module.exports = function() {
 		});
 	}
 
+	utils.stripNullsFromObjects = function (objects, keys) {
+		if (objects.constructor !== Array)
+			objects = [objects];
+
+		objects.forEach(function (obj) {
+			if (keys) {
+				for (var key in keys) {
+					obj[key] = stripNull(obj[key]);
+				}
+			}
+			else {
+				for (var key in obj) {
+					obj[key] = stripNull(obj[key]);
+				}
+			}
+		});
+		return objects;
+	}
+
 	return utils;
 }()
