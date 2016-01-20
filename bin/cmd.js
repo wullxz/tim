@@ -84,10 +84,10 @@ function proc(model, argv) {
           process.exit(-1);
         }
 
-        console.log(printf("%-5s | %-15s | %-20s | %-6s | %-20s | %-10s", "ID", "Name", "Street 1", "Zip", "City", "Shortkey"));
-        clients.forEach(function(client) {
-          console.log(printf("%-5s | %-15s | %-20s | %-6s | %-20s | %-10s", client.id, client.name, stripNull(client.street1), stripNull(client.zip), stripNull(client.city), stripNull(client.short)));
-        });
+        var cols = [["id", "ID"], ["name", "Name"], ["street1", "Street 1"], ["zip", "Zip"], ["city", "City"], "email", ["short", "Shortkey"]];
+				clients = stripNullsFromObjects(clients);
+				cols.unshift(clients);
+				asTable.apply(this, cols);
       });
     }
     else {
@@ -232,8 +232,11 @@ function proc(model, argv) {
       if (argv.columns) {
         cols = argv.columns.split(',');
 			}
-      else {
+      else if (argv.archived) {
         cols = ["start", "end", "title", ["fk_InvoicePos", "invoice pos"], "archived", "clientname", "diffstr"];
+			}
+			else {
+        cols = ["start", "end", "title", "clientname", "diffstr"];
 			}
 
       cols.unshift(rows);
@@ -242,9 +245,9 @@ function proc(model, argv) {
   }
 
   // #### STAGE ###
-  // stages tracked times or invoice positions
-  else if (verb === 'stage') {
-    var what = argv._[1]; // stage what?
+  // commits tracked times or invoice positions
+  else if (verb === 'commit') {
+    var what = argv._[1]; // commit what?
 		if (what === "times") {
 			var client = argv.c || argv.s;
 			var filter = [
@@ -319,7 +322,7 @@ function proc(model, argv) {
 
 		}
 		else {
-			usage('stage', true);
+			usage('commit', true);
 		}
   }
 
@@ -373,7 +376,7 @@ function startTimeTracking(client, title, description, date) {
   description = description || null;
 
   // parse date here
-  date = (!date) ? new Date(date) : new Date();
+  date = (date) ? new Date(date) : new Date();
   if (!(date instanceof Date || date.toString() === "Invalid Date"))
     throw "This is not a valid Date";
 
@@ -448,9 +451,9 @@ function usage(arg, invalid) {
 	usage['list'] = new Array();
 	usage['list'][0] = "\ttim list [filters]";
 
-	usage['stage'] = new Array();
-	usage['stage'].push("\ttim stage - Combines tracked times into an invoice position");
-	usage['stage'].push("\ttim stage times|pos (-c|--client clientName)|(-s|--short shortKey)");
+	usage['commit'] = new Array();
+	usage['commit'].push("\ttim commit - Combines tracked times into an invoice position");
+	usage['commit'].push("\ttim commit times|pos (-c|--client clientName)|(-s|--short shortKey)");
 
   // output usage / help
   console.log("Usage - incomplete but please go ahead and read what's already there:\n");
