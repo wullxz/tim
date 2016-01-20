@@ -354,40 +354,83 @@ module.exports = function (dbpath, debugoutput) {
 			if (err)
 				return callback('Error during Times-Check:\n' + err);
 
-			if (rows.length != 1) {
-				callback('Those Time IDs matched more than one client!');
-				return;
-			}
-			else {
-				clientId = rows[0].fk_Clients;
+			if (rows.length != 1)
+				return callback('Those Time IDs matched more than one client!');
 
-				// insert new invoice position
-				var qry = "insert into InvoicePos (title, quantity, value, description, fk_Clients) values ($title, $quantity, $value, $description, $fk_Clients);";
-				var params = {
-					$title: title,
-					$quantity: quantity,
-					$value: value,
-						$description: description,
-						$fk_Clients: clientId
-				}
+			clientId = rows[0].fk_Clients;
+
+			// insert new invoice position
+			var qry = "insert into InvoicePos (title, quantity, value, description, fk_Clients) values ($title, $quantity, $value, $description, $fk_Clients);";
+			var params = {
+				$title: title,
+				$quantity: quantity,
+				$value: value,
+					$description: description,
+					$fk_Clients: clientId
+			}
+			var st = db.prepare(qry);
+			st.run(params, function (err) {
+				if (err)
+					return callback('Error while inserting new invoice position:\n' + err);
+
+				// update times records to have the InvoicePos ID in them
+				var invposId = this.lastID;
+				var qry = "update Times set fk_InvoicePos = $id where id in (" + times.join(',') + ");";
 				var st = db.prepare(qry);
-				st.run(params, function (err) {
+				st.run({$id: invposId}, function (err) {
 					if (err)
-						return callback('Error while inserting new invoice position:\n' + err);
+						return callback('Error during update of times records\n' + err);
 
-					// update times records to have the InvoicePos ID in them
-					var invposId = this.lastID;
-					var qry = "update Times set fk_InvoicePos = $id where id in (" + times.join(',') + ");";
-					var st = db.prepare(qry);
-					st.run({$id: invposId}, function (err) {
-						if (err)
-							return callback('Error during update of times records\n' + err);
-
-						console.log("Invoice position with id " + invposId + " sucessfully created!");
-					});
+					console.log("Invoice position with id " + invposId + " sucessfully created!");
 				});
-			}
+			});
 		});
+	}
+
+	model.Invoice = function () {
+	}
+
+	model.Invoice.create = function (invoicePos, date) {
+		if (!invoicePos || invoicePos.constructor !== Array || invoicePos.length === 0)
+			throw "Argument invalid: invoicePos!";
+		if (date.constructor != Date || date.toString === "Invalid Date")
+			throw "The date supplied is invalid!";
+
+		var clientId;
+		var qry = "select * from InvoicePos where id in (" + invoicePos.join(',') + ") group by fk_Clients;";
+		var st = db.prepare(qry);
+		st.all({}, function (err, rows) {
+			if (err)
+				return callback("Error during InvoicePos-Check: ", err);
+			if (rows.length != 1)
+				return callback("Those InvoicePos IDs matched more than one client!");
+
+			clientId = rows[0].fk_Clients;
+
+			// insert new invoice
+			var qry = "insert into Invoice (date, fk_Clients) values ($date, $fk_Clients);";
+			var params = {
+				$date: date,
+				$fk_Clients: fk_Clients
+			}
+			var st = db.prepare(qry);
+			st.run(params, function (err) {
+				if (err)
+					return callback("Error saving new Invoice: ", err);
+
+				// update InvoicePos records with Invoice ID
+				var invoiceId = this.lastID;
+				var qry = "update InvoicePos set fk_Invoices = $id where id in (" + invoicePos.join(',') + ");";
+				var st = db.prepare(qry);
+				st.run({$id: invoiceId}, function (err) {
+					if (err)
+						return callback("Error during InvoicePos update - could not update Invoice ID: ", err);
+
+					console.log("Invoice with id " + invoiceId + " successfully created!");
+				});
+			});
+		});
+	}
 	}
 
 	/*
