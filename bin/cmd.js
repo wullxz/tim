@@ -84,10 +84,17 @@ function proc(model, argv) {
           process.exit(-1);
         }
 
-        var cols = [["id", "ID"], ["name", "Name"], ["street1", "Street 1"], ["zip", "Zip"], ["city", "City"], "email", ["short", "Shortkey"]];
+				var headers = [
+					{ name: "id", alias: "ID" },
+					{ name: "name", alias: "Name" },
+					{ name: "street1", alias: "Street" },
+					{ name: "zip", alias: "ZIP" },
+					{ name: "city", alias: "City" },
+					{ name: "email", alias: "E-Mail" },
+					{ name: "short", alias: "Shortkey" }
+				];
 				clients = stripNullsFromObjects(clients);
-				cols.unshift(clients);
-				asTable.apply(this, cols);
+				asTable({ rows: clients, keyList: headers });
       });
     }
     else {
@@ -234,19 +241,31 @@ function proc(model, argv) {
 					}
 				});
 
+				var headers = [
+					 { name: "start", alias: "Start" },
+					 { name: "end", alias: "End" },
+					 { name: "title", alias: "Title" },
+					 { name: "clientname", alias: "Client name" },
+					 { name: "fk_InvoicePos", alias: "Invoice Position" },
+					 { name: "archived", alias: "Archived" },
+					 { name: "diffstr", alias: "Time taken", align: "right" }
+				];
+
 				var cols = [];
 				if (argv.columns) {
 					cols = argv.columns.split(',');
 				}
 				else if (argv.archived) {
-					cols = ["start", "end", "title", ["fk_InvoicePos", "invoice pos"], "archived", "clientname", "diffstr"];
+					cols = ["start", "end", "title", "fk_InvoicePos", "archived", "clientname", "diffstr"];
 				}
 				else {
 					cols = ["start", "end", "title", "clientname", "diffstr"];
 				}
+				headers = headers.filter(function (item) {
+					return (cols.indexOf(item.name) > -1) || (cols.indexOf(item.alias) > -1);
+				});
 
-				cols.unshift(rows);
-				asTable.apply(this, cols);
+				asTable({rows: rows, keyList: headers});
 			});
 		}
 		// list InvoicePos
@@ -296,14 +315,14 @@ function proc(model, argv) {
 						process.exit(-1);
 					}
 
-					asTable.apply(this, [rows]);
+					asTable({rows: rows});
 				});
 
 			});
 		}
 	}
 
-  // #### STAGE ###
+  // #### COMMIT ###
   // commits tracked times or invoice positions
   else if (verb === 'commit') {
     var what = argv._[1]; // commit what?
@@ -333,8 +352,7 @@ function proc(model, argv) {
 
 				// print table
 				var cols = ["id","start", "end", "title", "clientname", "diffstr"];
-				cols.unshift(rows);
-				asTable.apply(this, cols);
+				asTable({ rows: rows, keyList: cols});
 
 				console.log(""); // empty line after table
 
@@ -370,8 +388,8 @@ function proc(model, argv) {
 				// ask for other stuff
 				var title = rls.question("Title for this position: ");
 				var description = rls.question("Description for this position (optional): ");
-				var value = rls.question("Value per hour (" + hourlyWage + "): ") | hourlyWage;
-				var quantity = rls.question("Quantity (" + Math.ceil(quantity) + "): ") | Math.ceil(quantity);
+				var value = rls.question("Value per hour (" + hourlyWage + "): ") || hourlyWage;
+				var quantity = rls.question("Quantity (" + Math.ceil(quantity) + "): ") || Math.ceil(quantity);
 
 				// save changes!
 				model.InvoicePos.create(ids, quantity, value, title, description);
