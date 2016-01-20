@@ -209,43 +209,99 @@ function proc(model, argv) {
   // #### LIST ####
   // list tracked times
   else if (verb === 'list') {
-    var filts = null;
-    if (argv.f) {
-      filts = JSON.parse(argv.f);
-    }
-		else {
-			filts = [
-				["archived", 0],
-				["fk_InvoicePos is null"]
-			];
-		}
-
-    model.Time.list(filts, function(err, rows) {
-      if (err)
-        throw err;
-
-      rows.map(function (r) {
-        r.start = moment(r.start).format("llll");
-				if (r.end !== '- running -') {
-					r.end = moment(r.end).format("llll");
-				}
-      });
-
-      var cols = [];
-      if (argv.columns) {
-        cols = argv.columns.split(',');
-			}
-      else if (argv.archived) {
-        cols = ["start", "end", "title", ["fk_InvoicePos", "invoice pos"], "archived", "clientname", "diffstr"];
+		var what = argv._[1];
+		// list times
+		if (!what || what === "times") {
+			var filts = null;
+			if (argv.f) {
+				filts = JSON.parse(argv.f);
 			}
 			else {
-        cols = ["start", "end", "title", "clientname", "diffstr"];
+				filts = [
+					["archived", 0],
+					["fk_InvoicePos is null"]
+				];
 			}
 
-      cols.unshift(rows);
-      asTable.apply(this, cols);
-    });
-  }
+			model.Time.list(filts, function(err, rows) {
+				if (err)
+					throw err;
+
+				rows.map(function (r) {
+					r.start = moment(r.start).format("llll");
+					if (r.end !== '- running -') {
+						r.end = moment(r.end).format("llll");
+					}
+				});
+
+				var cols = [];
+				if (argv.columns) {
+					cols = argv.columns.split(',');
+				}
+				else if (argv.archived) {
+					cols = ["start", "end", "title", ["fk_InvoicePos", "invoice pos"], "archived", "clientname", "diffstr"];
+				}
+				else {
+					cols = ["start", "end", "title", "clientname", "diffstr"];
+				}
+
+				cols.unshift(rows);
+				asTable.apply(this, cols);
+			});
+		}
+		// list InvoicePos
+		else if (what === "pos") {
+			var clientSearch = {};
+			if (argv.c) {
+				clientSearch.name = argv.c;
+			}
+			else if (argv.s) {
+				clientSearch.short = argv.s;
+			}
+			else {
+				console.log("You need to specify a client with -c|--client or -s|--short");
+				process.exit(-1);
+			}
+
+			getClient(clientSearch, function (err, clients) {
+				if (err) {
+					console.log("There was an error retreiving the client:", err);
+					process.exit(-1);
+				}
+
+				// check number of clients found and ask user if there's more than one
+				var id;
+				if (clients.constructor === Array) {
+					if (clients.length === 1) {
+						id = clients[0].id;
+					}
+					else {
+						selectFromList(clients, null, function (err, result) {
+							if (err) {
+								console.log(err);
+								process.exit(-1);
+							}
+
+							id = result.id;
+						});
+					}
+				}
+				else {
+					id = clients.id;
+				}
+
+				model.InvoicePos.listByClient(id, function (err, rows) {
+					if (err) {
+						console.log(err);
+						process.exit(-1);
+					}
+
+					asTable.apply(this, [rows]);
+				});
+
+			});
+		}
+	}
 
   // #### STAGE ###
   // commits tracked times or invoice positions
