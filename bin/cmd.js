@@ -62,22 +62,19 @@ function proc(model, argv) {
       return usage('search', false);
     // search clients
     if (target === 'client' || !target) {
-      var spattern = "";
-      var stype = "";
+			var search = {};
       if (argv.c || argv.name) {
-        spattern = (argv.c) ? argv.c : argv.name;
-        stype = "name";
+				search.name = argv.c || argv.name;
       }
       else if (argv.s) {
-        spattern = argv.s;
-        stype = "short";
+				search.short = argv.s
       }
       else {
         //console.log("Please specify a client name with -c|--client or a short key with -s|--short!");
         return usage('search', true);
       }
 
-      getClient(spattern, stype, function (err, clients) {
+      getClient(search, function (err, clients) {
         if (err) {
           console.log(err);
           process.exit(-1);
@@ -126,25 +123,24 @@ function proc(model, argv) {
   else if (verb === 'start') {
     var spattern = "";
     var stype = "";
+		var search = {};
 
-    // get search type for client
-    if (argv.c) {
-      spattern = argv.c;
-      stype = "name";
-    }
-    else if (argv.s) {
-      spattern = argv.s;
-      stype = "short";
-    }
-    else {
+		if (argv.c) {
+			search.name = argv.c;
+		}
+		else if (argv.s) {
+			search.short = argv.s;
+		}
+		else {
       console.log("Please specify a client name with -c|--client or a short key with -s|--short!");
       return;
     }
 
-    getClient(spattern, stype, function(err, clients) {
+
+		getClient(search, function(err, clients) {
       if (err) {
         console.log(err);
-        process.exist(-1);
+        process.exit(-1);
       }
 
       if (typeof clients === 'undefined' || clients === null) {
@@ -153,13 +149,19 @@ function proc(model, argv) {
       }
 
       if (clients.length > 1) {
-        //TODO: ask which client to use
-        console.log("there's more than one client in the result set!");
-        process.exit(-1);
-      }
-      else {
-        timeTrack(clients, argv.t, argv.d, argv.start);
-      }
+				selectFromList(clients, null, function(err, result) {
+					if (err) {
+						console.log("Error selecting a client:\n" + err);
+						process.exit(-1);
+					}
+
+					clients = result;
+				});
+			}
+
+			debuglog("Selected client:\n" + JSON.stringify(clients, null, 2));
+
+      timeTrack(clients, argv.t, argv.d, argv.start);
     });
   }
   // ##### STATUS ####
@@ -235,8 +237,7 @@ function proc(model, argv) {
 			}
 
       cols.unshift(rows);
-      asTable.apply(this, cols);
-      //asTable(rows, cols);
+      utils.asTable.apply(this, cols);
     });
   }
 
@@ -337,7 +338,7 @@ function proc(model, argv) {
     inv.create(cli, pos, 10, new Date());
   }
 	else if (verb === 'test') {
-		utils.debuglog('util test');
+		debuglog('util test');
 	}
 
 
@@ -395,20 +396,19 @@ function timeTrack(client, title, description, date, action) {
  * gets clients based on search-pattern (spattern) and search-type (stype)
  * and passes the results to callback
  */
-function getClient(spattern, stype, callback) {
-  // search for client name
-  if (stype==='name') {
-    debuglog("searching client by name: " + spattern);
-    model.Client.findByName({ $name: spattern	}, callback)
+function getClient(search, callback) {
+	// search client by name
+	if (search.name) {
+    debuglog("Searching client by name: " + search.name);
+    model.Client.findByName({ $name: search.name	}, callback)
   }
-  // search for short code
-  else if (stype==='short') {
-    debuglog("searching client by shortkey:" + spattern);
-    model.Client.findByKey({ $short: spattern }, callback);
+  // search for short key
+  else if (search.short) {
+    debuglog("Searching client by shortkey:" + search.short);
+    model.Client.findByKey({ $short: search.short}, callback);
   }
   else {
-    console.log("Not a valid search option: " + stype);
-    process.exit(-1);
+		callback("No client search argument given!");
   }
 }
 
@@ -478,78 +478,5 @@ function usage(arg, invalid) {
   process.exit(invalid ? -1 : 0);
 }
 
-function asTable() {
-  // arguments:
-  var objectArray = arguments[0];
-  var keyList = Array.prototype.slice.call(arguments, 1);
-
-  var keys = [];       // contains all key names of objects stored in objectArray
-  var keydict = [];
-  var maxlength = []; // max length for every column
-  var formats = [];
-
-  // validate arguments: obj
-  if (!objectArray) {
-    throw {"name": "ArgumentInvalidEx", "msg": "You must supply at least one object to print as table"};
-  }
-
-  // pack obj into an array if it isn't in one
-  if (objectArray.constructor !== Array) {
-    objectArray = [obj,];
-  }
-
-  // validate arguments: keys
-  if (!keyList || keyList.length === 0 || (keyList.length === 1 && keyList[0] === "*")) {
-    for (var key in objectArray[0]) {
-      if (typeof key !== 'function') keyList.push(key);
-    }
-  }
-
-  // create keys array and keydict to save key aliases for the table
-  // also initializes maxlength[key] with the length of the keyname which will be used as header
-  keyList.forEach(function(key) {
-    if (key.constructor === Array) {
-      keys.push(key[0]);
-      keydict[key[0]] = key[1];
-      maxlength[key[0]] = String(key[1]).length;
-    }
-    else {
-      keys.push(key);
-      maxlength[key] = String(key).length;
-    }
-  });
-
-  // find max length of content for each key
-  objectArray.forEach(function (obj) {
-    keys.forEach(function (key) {
-      if (String(obj[key]).length > maxlength[key]) {
-        maxlength[key] = String(obj[key]).length;
-      }
-    });
-  });
-
-  // print header
-  var line = "";
-  var headerLabels = [];
-  keys.forEach(function(key) {
-    line += "%-" + maxlength[key] + "s|";   // insert max length of key/value for obj key
-    headerLabels.push((keydict[key]) ? keydict[key] : key);   // save headers in array
-  });
-  line = line.substring(0,line.length-1); // remove last "|", line done here
-
-  var ar = headerLabels;
-  ar.unshift(line);               // put the format string in front of args array
-  console.log(printf.apply(this, ar)); // print headers
-  // print content
-  objectArray.map(function (obj) { // loop objects
-    var objvalues = [];
-    keys.forEach(function (key) {
-      objvalues.push(obj[key]); // push object values into array for each key
-    });
-
-    objvalues.unshift(line);
-    console.log(printf.apply(this, objvalues));
-  });
-}
 
 proc(model, argv);
