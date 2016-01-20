@@ -107,7 +107,7 @@ function proc(model, argv) {
       model.Client.create({
         $name: argv.name,
         $street1: argv.street1 || "",
-        $zip: argv.zip+"" || "",
+        $zip: (argv.zip) ? argv.zip+"" : "",
         $city: argv.city || "",
         $street2: argv.street2 || "",
         $short: argv.short || null
@@ -158,6 +158,9 @@ function proc(model, argv) {
 					clients = result;
 				});
 			}
+
+			if (clients.constructor === Array && clients.length === 1)
+				clients = clients[0];
 
 			debuglog("Selected client:\n" + JSON.stringify(clients, null, 2));
 
@@ -384,7 +387,7 @@ function startTimeTracking(client, title, description, date) {
 		if (err)
 			throw err;
 		else
-			console.log("Time tracking started for ", client.name, "!");
+			console.log("Time tracking started for", client.name + "!");
 	});
 }
 
