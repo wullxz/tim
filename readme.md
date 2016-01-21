@@ -32,5 +32,5 @@ You might need to run `npm link` as administrator/superuser.
 
 # contact
 
-mail: meik {at} schnitzelspecht.de
+mail: meik {at} schnitzelspecht.de  
 jabber: wullxz {at} jabber.ccc.de
