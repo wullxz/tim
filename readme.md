@@ -5,7 +5,16 @@ Time Is Money - time tracking &amp; invoice hacking
 I started this project to practice some nodejs for myself and to create a tool for time tracking my other projects.
 It is inspired by [substacks clocker project](https://github.com/substack/clocker).
 
-# howto use it
+# features
+
+- manage clients (currently implemented: add a client)
+- track times for clients
+- combine tracked times into invoice line items (translated that with 'invoice position' because I'm german ^^)
+- combine invoice line items to invoices
+- automatically create invoice pdfs (to be implemented until end of jan 2016)
+- automatically send those invoice pdfs to clients (requires an email saved with the client record - to be implemented until end of jan 2016)
+
+# how to use it
 You need nodejs/npm to be installed on your system and then run:
 ```
 git clone https://github.com/wullxz/tim
