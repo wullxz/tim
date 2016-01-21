@@ -1,6 +1,10 @@
 # tim
 Time Is Money - time tracking &amp; invoice hacking
 
+# message for TALIMA!
+
+if you happen to have a look at my code, don't hesitate to ask if you don't understand anything ^^
+
 # about
 I started this project to practice some nodejs for myself and to create a tool for time tracking my other projects.
 It is inspired by [substacks clocker project](https://github.com/substack/clocker).
@@ -25,3 +29,8 @@ tim help
 ```
 
 You might need to run `npm link` as administrator/superuser.
+
+# contact
+
+mail: meik {at} schnitzelspecht.de
+jabber: wullxz {at} jabber.ccc.de
