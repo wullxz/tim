@@ -41,8 +41,8 @@ module.exports = function() {
 				options.id = "id";
 			if (!options.question)
 				options.question = "Select one: ";
-			if (!options.quantity)
-				options.question = 1;
+			if (!options.quantity && options.quantity != 0)
+				options.quantity = 1;
 			if (!options.allowAll)
 				options.allowAll = false;
 		}

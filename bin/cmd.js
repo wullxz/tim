@@ -269,7 +269,7 @@ function proc(model, argv) {
 			});
 		}
 		// list InvoicePos
-		else if (what === "pos") {
+		else if (what === "pos" || what === "invoice" || what === "inv") {
 			var clientSearch = {};
 			if (argv.c) {
 				clientSearch.name = argv.c;
@@ -294,6 +294,9 @@ function proc(model, argv) {
 					if (clients.length === 1) {
 						id = clients[0].id;
 					}
+					else if (clients.length === 0) {
+						console.log("There was no client with that name/shortkey");
+					}
 					else {
 						selectFromList(clients, null, function (err, result) {
 							if (err) {
@@ -309,7 +312,9 @@ function proc(model, argv) {
 					id = clients.id;
 				}
 
-				model.InvoicePos.listByClient(id, function (err, rows) {
+				var list = (what === "pos") ? model.InvoicePos.listByClient : model.Invoice.listByClient;
+
+				list(id, function (err, rows) {
 					if (err) {
 						console.log(err);
 						process.exit(-1);
@@ -396,7 +401,69 @@ function proc(model, argv) {
 			});
 		}
 		else if (what === "pos") {
+			var client = {}
+			if (argv.c) {
+				client.name = argv.c;
+			}
+			else if (argv.s) {
+				client.short = argv.s;
+			}
+			else {
+				console.log("You need to supply a client with -c|--client or -s|--short");
+				process.exit(-1);
+			}
 
+
+			getClient(client, function (err, rows) {
+				if (err) {
+					console.log("There was an Error retreiving the client records from the database:", err);
+					process.exit(-1);
+				}
+
+				var client;
+				if (rows.length === 0) {
+					console.log("There was no client with that name or short key!");
+					process.exit(-1);
+				}
+				else if (rows.length > 1) {
+					selectFromList(rows, null, function (err, result) {
+						if (err) {
+							console.log("Error chosing from the client list!");
+							process.exit(-1);
+						}
+
+						client = result;
+					});
+				}
+				else {
+					client = rows[0];
+				}
+
+				model.InvoicePos.listUndoneByClient(client.id, function (err, rows) {
+					if (err) {
+						console.log(err);
+						process.exit(-1);
+					}
+
+					var options = {
+						question: "Select 'all' invoice items or a comma seprated ID list: ",
+						allowAll: true
+					};
+
+					selectFromList(rows, options, function (err, result) {
+						if (err) {
+							console.log(err);
+							process.exit(-1);
+						}
+
+						var ids = result.map(function (item) {
+							return item.id;
+						});
+
+						model.Invoice.create(ids, new Date());
+					});
+				});
+			});
 		}
 		else {
 			usage('commit', true);

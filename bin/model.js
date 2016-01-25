@@ -89,6 +89,7 @@ module.exports = function (dbpath, debugoutput) {
 			qry.add("		title TEXT,");
 			qry.add("		quantity NUMERIC,");
 			qry.add("		value NUMERIC,");
+			qry.add("		total NUMERIC,");
 			qry.add("		description TEXT,");
 			qry.add("		fk_Clients INTEGER,");
 			qry.add("		fk_Invoices INTEGER,");
@@ -331,7 +332,7 @@ module.exports = function (dbpath, debugoutput) {
 					end = new Date();
 				}
 
-				row.diffstr = moment.duration(moment(end).diff(start)).format('H [hours] m [minutes] s [seconds]');
+				row.diffstr = moment.duration(moment(end).diff(start)).format('H [hours] mm [minutes] ss [seconds]');
 				row.diff = moment.duration(moment(end).diff(start));
 			}
 
@@ -351,7 +352,21 @@ module.exports = function (dbpath, debugoutput) {
 		var st = db.prepare(qry);
 		st.all({$id: clientId}, function (err, rows) {
 			if (err)
-				return callback("Error retreiving Invoice Positions from db:", err);
+				return callback("Error retreiving Invoice Positions from db: " + err);
+
+			callback(err, rows);
+		});
+	}
+
+	model.InvoicePos.listUndoneByClient = function (clientId, callback) {
+		if (!clientId && clientId != 0)
+			throw "Parameter error: ClientId must be a number";
+
+		var qry = "select * from InvoicePos where fk_Invoices is null and fk_Clients = $id";
+		var st = db.prepare(qry);
+		st.all({$id: clientId}, function (err, rows) {
+			if (err)
+				return callback("Error retreiving Invoice Positions from db: " + err);
 
 			callback(err, rows);
 		});
@@ -374,13 +389,14 @@ module.exports = function (dbpath, debugoutput) {
 			clientId = rows[0].fk_Clients;
 
 			// insert new invoice position
-			var qry = "insert into InvoicePos (title, quantity, value, description, fk_Clients) values ($title, $quantity, $value, $description, $fk_Clients);";
+			var qry = "insert into InvoicePos (title, quantity, value, total, description, fk_Clients) values ($title, $quantity, $value, $total, $description, $fk_Clients);";
 			var params = {
 				$title: title,
 				$quantity: quantity,
 				$value: value,
-					$description: description,
-					$fk_Clients: clientId
+				$total: quantity*value,
+				$description: description,
+				$fk_Clients: clientId
 			}
 			var st = db.prepare(qry);
 			st.run(params, function (err) {
@@ -404,6 +420,27 @@ module.exports = function (dbpath, debugoutput) {
 	model.Invoice = function () {
 	}
 
+	model.Invoice.listByClient = function (clientId, callback) {
+		if (!clientId && clientId != 0)
+			return callback("You must supply a valid Client ID!");
+
+		var qry = new Qry();
+		qry.add("select inv.id, cli.name, cli.id cliid, pos.grandtotal");
+		qry.add("	from");
+		qry.add("		Invoices inv");
+		qry.add("	inner join Clients cli on cli.id=inv.fk_Clients");
+		qry.add("	inner join (select *, sum(total) grandtotal from InvoicePos group by fk_Invoices) pos on pos.fk_Invoices=inv.id");
+		qry.add("	where cli.id=$id;");
+		debuglog("Invoice select query:\n" + qry.qry());
+		var st = db.prepare(qry.qry());
+		st.all({$id: clientId}, function (err, rows) {
+			if (err)
+				return callback("Error retreiving Invoices from Database:\n" + err);
+
+			callback(err, rows);
+		});
+	}
+
 	model.Invoice.create = function (invoicePos, date) {
 		if (!invoicePos || invoicePos.constructor !== Array || invoicePos.length === 0)
 			throw "Argument invalid: invoicePos!";
@@ -422,10 +459,10 @@ module.exports = function (dbpath, debugoutput) {
 			clientId = rows[0].fk_Clients;
 
 			// insert new invoice
-			var qry = "insert into Invoice (date, fk_Clients) values ($date, $fk_Clients);";
+			var qry = "insert into Invoices (date, fk_Clients) values ($date, $fk_Clients);";
 			var params = {
 				$date: date,
-				$fk_Clients: fk_Clients
+				$fk_Clients: clientId
 			}
 			var st = db.prepare(qry);
 			st.run(params, function (err) {
