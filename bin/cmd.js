@@ -470,6 +470,60 @@ function proc(model, argv) {
 		}
   }
 
+	// #### INVOICE ###
+	// prints or sends Invoices
+	else if (verb === 'invoice') {
+		if (!argv.c && !argv.s) {
+			console.log("You need to specify a client to print or send invoices!");
+			process.exit(-1);
+		}
+
+		getSingleClient(function (err, client) {
+			if (err) {
+				console.log("Couldn't get Client from database: " + err);
+				process.exit(-1);
+			}
+
+			if (!client) {
+				console.log("Couldn't find a Client with that name or shortkey!");
+				process.exit(0);
+			}
+
+			var invtpl = require('./invoice.js')("./tpl/invoice.ejs", conf);
+			model.Invoice.listByClient(client.id, function (err, invoices) {
+				if (err) {
+					console.log("Couldn't get Invoices from database: " + err);
+					process.exit(-1);
+				}
+
+				if (!invoices) {
+					console.log("There are no invoices for that client! Please create an invoice first using 'tim commit pos'");
+					process.exit(0);
+				}
+
+				var invoice;
+				if (invoices.constructor === Array && invoices.length > 1) {
+					selectFromList(invoices, null, function (err, result) {
+						if (err) {
+							console.log("There was a problem chosing one of the invoices!");
+							process.exit(-1);
+						}
+
+						invoice = result;
+					});
+				}
+				else {
+					invoice = invoices[0];
+				}
+
+				//TODO: generate invoice
+				model.Invoice.populateItems(invoice, function (err, inv) {
+					invtpl.create(client, inv, new Date());
+				});
+			});
+		});
+	}
+
   // #### HELP ####
   // output help for parameter
   else if (verb === 'help') {
@@ -494,12 +548,19 @@ function proc(model, argv) {
 			datadir = process.env.timdata || argv.datadir;
 		}
 		mkdirp.sync(datadir);
-		var model = require('./model.js')(path.join(datadir, dbname), debug);
-    model.initDb();
 		conf.datadir = datadir;
 		conf.hourlyDefaultWage = rls.question("What will be your default hourly wage? ");
-		saveConfig();
-  }
+		conf.invoiceDir = rls.question("Where should Invoices be saved to? ");
+		fs.lstat(conf.invoiceDir, function(err, stats) {
+			if (err || !stats.isDirectory()) {
+				console.log("The path '" + conf.invoiceDir + "' is not a valid directory!", err);
+				process.exit(-1);
+			}
+			var model = require('./model.js')(path.join(datadir, dbname), debug);
+			model.initDb();
+			saveConfig();
+		});
+	}
 
   else {
     usage(null, true);
@@ -529,6 +590,32 @@ function startTimeTracking(client, title, description, date) {
 			throw err;
 		else
 			console.log("Time tracking started for", client.name + "!");
+	});
+}
+
+function getSingleClient(callback) {
+	var client = {};
+	if (argv.c)
+		client.name = argv.c;
+	else if (argv.s)
+		client.short = argv.s;
+
+	getClient(client, function(err, clients) {
+		if (err) {
+			return callback(err);
+		}
+
+		if (clients && clients.constructor === Array && clients.length === 1) {
+			return callback(err, clients[0]);
+		}
+		else if (!clients || clients.length === 0) {
+			return callback(err, null);
+		}
+		else {
+			selectFromList(clients, options, function (err, client) {
+				return (err, client);
+			});
+		}
 	});
 }
 

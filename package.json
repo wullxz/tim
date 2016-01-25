@@ -9,7 +9,6 @@
     "json-stable-stringify": "^1.0.0",
     "minimist": "0.0.10",
     "mkdirp": "^0.3.5",
-    "strftime": "~0.6.2",
     "sqlite3": "^3.0.0",
 		"sprintf-js": "^1.0.0",
     "async": "^1.4.2",
@@ -17,7 +16,8 @@
 		"moment-duration-format": "^1",
     "html-pdf": "^1.4.0",
     "ejs": "^2.3.4",
-		"readline-sync": "^1.2.22"
+		"readline-sync": "^1.2.22",
+		"opener": "^1.0.0"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

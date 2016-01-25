@@ -441,6 +441,23 @@ module.exports = function (dbpath, debugoutput) {
 		});
 	}
 
+	model.Invoice.populateItems = function (invoice, callback) {
+		if (!invoice) {
+			return callback("No Invoice given!");
+		}
+
+		var qry = "select * from InvoicePos where fk_Invoices = $invid";
+		var st = db.prepare(qry);
+		st.all({$invid: invoice.id}, function (err, items) {
+			if (err) {
+				return callback(err);
+			}
+
+			invoice.items = items;
+			callback(err, invoice);
+		});
+	}
+
 	model.Invoice.create = function (invoicePos, date) {
 		if (!invoicePos || invoicePos.constructor !== Array || invoicePos.length === 0)
 			throw "Argument invalid: invoicePos!";

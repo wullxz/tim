@@ -5,6 +5,14 @@
     <title>A simple, clean, and responsive HTML invoice template</title>
 
     <style>
+		.left {
+			text-align: left;
+		}
+
+		.right {
+			text-align: right;
+		}
+
     .invoice-box{
         max-width:800px;
         margin:auto;
@@ -89,24 +97,36 @@
     <div class="invoice-box">
         <table cellpadding="0" cellspacing="0">
             <tr class="top">
-                <td colspan="2">
+                <td colspan="4">
                     <table>
                         <tr>
-                            <td class="title">
-                                <h2>Rechnung</h2>
+                            <td class="title" rowspan="3">
+                                <h3>Rechnung</h3>
                             </td>
 
-                            <td>
-                                Rechnungsnummer: <%= invoiceno %><br>
-                                Datum: <%= invoicedate %>
+														<td class="right">
+															Rechnungsnummer:
+														</td>
+
+                            <td class="right">
+                                <%= invoiceno %>
                             </td>
                         </tr>
+												<tr>
+													<td class="right">
+														Datum:
+													</td>
+
+													<td class="right">
+														<%= invoicedate %>
+													</td>
+												</tr>
                     </table>
                 </td>
             </tr>
 
             <tr class="information">
-                <td colspan="2">
+                <td colspan="4">
                     <table>
                         <tr>
                             <td>
@@ -117,10 +137,13 @@
 
                             </td>
 
-                            <td>
+                            <td class="left">
                                 Meik Specht<br>
                                 Kloppgasse 15<br>
-                                55411 Bingen
+                                55411 Bingen<br><br>
+
+																Tel: 0151/12734259<br>
+																Mail: meik@schnitzelspecht.de
                             </td>
                         </tr>
                     </table>
@@ -146,22 +169,22 @@
                 </td>
             </tr>
 
-            <% var total = 0; for (var i=0; i<positions.length; i++) { total += positions[i].value*positions[i].quantity; %>
+            <% var total = 0; for (var i=0; i<items.length; i++) { total += items[i].value*items[i].quantity; %>
             <tr class="item">
                 <td>
-                    <%= positions[i].title %>
+                    <%= items[i].title %>
                 </td>
 
-                <td>
-                    <%= positions[i].quantity %>
+                <td class="right">
+                    <%= items[i].quantity %>
                 </td>
 
-                <td>
-                    <%= positions[i].value %>
+                <td class="right">
+                    <%= items[i].value %>
                 </td>
 
-                <td>
-                    <%= positions[i].value * positions[i].quantity %>
+                <td class="right">
+                    <%= items[i].value * items[i].quantity %>
                 </td>
             </tr>
             <% } %>
