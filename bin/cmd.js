@@ -30,7 +30,7 @@ HOME = path.join(HOME, ".tim/");
 var confpath = path.join(HOME, 'settings.json');
 var conf = false;
 try { conf = fs.statSync(confpath) } catch (err) { }
-conf = (conf.isFile()) ? fs.readFileSync(confpath, { encoding: 'utf8' }).toString() : "";
+conf = (conf && conf.isFile()) ? fs.readFileSync(confpath, { encoding: 'utf8' }).toString() : "";
 conf = (conf.trim() === "") ? {} : JSON.parse(conf);
 
 
