@@ -100,7 +100,8 @@ table th {
 }
 
 table .service,
-table .desc {
+table .desc,
+table .itemdesc {
   text-align: left;
 }
 
@@ -148,6 +149,12 @@ table.footer td {
   letter-spacing: 1px;
 }
 
-a {
+a, a:visited, a:active {
   text-decoration: none;
+	color: black;
+}
+
+table td.itemdesc {
+	padding-top: 0px;
+	padding-left: 50px;
 }

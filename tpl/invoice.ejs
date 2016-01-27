@@ -52,7 +52,13 @@
             <td class="qty"><%= items[i].quantity %></td>
             <td class="total"><%= items[i].value * items[i].quantity %> &euro;</td>
           </tr>
-          <% } %>
+					<% if (items[i].description && typeof items[i].description === "string") { %>
+					<tr style="display: none;"><td colspan="4"></td></tr>
+					<tr class="itemdesc">
+						<td class="itemdesc"><%- escape(items[i].description).replace(/\\n/g, "<br />") %></td>
+						<td class="unit" colspan="3"></td>
+					</tr>
+					<% }} %>
 
           <tr>
             <td colspan="3" class="grand total">Gesamt</td>
@@ -61,7 +67,7 @@
         </tbody>
       </table>
       <div id="notices">
-        <div class="notice">Als Kleinunternehmer bin ich von der Gesetzlichen Umsatzsteuer befreit!</div>
+        <div class="notice">Als Kleinunternehmer bin ich von der gesetzlichen Umsatzsteuer befreit!</div>
       </div>
     </main>
     <footer>
