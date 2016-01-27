@@ -489,7 +489,7 @@ function proc(model, argv) {
 				process.exit(0);
 			}
 
-			var invtpl = require('./invoice.js')("./tpl/invoice.ejs", conf);
+			var invtpl = require('./invoice.js')(null, conf);
 			model.Invoice.listByClient(client.id, function (err, invoices) {
 				if (err) {
 					console.log("Couldn't get Invoices from database: " + err);

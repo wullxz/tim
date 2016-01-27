@@ -1,5 +1,6 @@
 module.exports = function (template, config) {
-	template = template || "./tpl/invoice.ejs";
+  var path = require('path');
+	template = template || path.join(__dirname, "../tpl", "invoice.ejs");
 
 	// Invoice object to be returned
 	var invoice = {};
@@ -12,7 +13,6 @@ module.exports = function (template, config) {
 	invoice.create = function (client, invoice) {
 		var ejs = require('ejs');
 		var fs = require('fs');
-		var path = require('path');
 		var pdf = require('html-pdf');
 		var moment = require('moment');
 		var printf = require('sprintf-js').sprintf;
@@ -21,33 +21,44 @@ module.exports = function (template, config) {
 
 		var filename = path.join(config.invoiceDir, (invoiceno + ".pdf"));
 
-		var tplstr = fs.readFileSync(template, 'utf-8');
-		var dateFormatted = moment(invoice.date).format('ll');
+		var dateFormatted = moment(invoice.date).format('DD.MM.YYYY');
 		console.log(invoiceno);
 		var data = { "client": client, "items": invoice.items, "invoiceno": invoiceno, "invoicedate": dateFormatted};
-		var html = ejs.render(tplstr, data);
+		ejs.renderFile(template, data, function (err, html) {
+      if (err) {
+        console.log("There was an error rendering the invoice: " + err);
+        process.exit(-1);
+      }
 
+      if (debug) {
+        var os = require('os');
+        var htmlFile = path.join(os.tmpDir(), "invoice.html");
+        fs.writeFile(htmlFile, html, function (err) {
+          if (err) {
+            return console.log(err);
+          }
 
-		if (debug) {
-			var os = require('os');
-			var htmlFile = path.join(os.tmpDir(), "invoice.html");
-			fs.writeFile(htmlFile, html, function (err) {
-				if (err) {
-					return console.log(err);
-				}
+          //opener(htmlFile).unref();
+        });
+      }
 
-				//opener(htmlFile).unref();
-			});
-		}
+      options = {
+        format: 'A4',
+        "border": {
+          "top": "15mm",            // default is 0, units: mm, cm, in, px
+          "right": "15mm",
+          "bottom": "15mm",
+          "left": "15mm"
+        },
+      };
+      console.log("Writing invoice pdf to: " + filename);
+      pdf.create(html, options).toFile(filename, function(err, res) {
+        if (err) return console.log(err);
 
-		options = {format: 'Letter'};
-		console.log("Writing invoice pdf to: " + filename);
-		pdf.create(html, options).toFile(filename, function(err, res) {
-			if (err) return console.log(err);
-
-			opener(filename).unref();
-			process.exit(0);
-		});
+        opener(filename).unref();
+        process.exit(0);
+      });
+    });
 	}
 
 	return invoice;

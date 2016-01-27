@@ -1,273 +1,83 @@
-<!doctype html>
-<html>
-<head>
+<!DOCTYPE html>
+<html lang="en">
+  <head>
     <meta charset="utf-8">
-    <title>A simple, clean, and responsive HTML invoice template</title>
-
+    <title>Example 1</title>
     <style>
-        .left {
-            text-align: left;
-        }
-
-        .right {
-            text-align: right;
-        }
-
-        .nowp {
-            white-space: nowrap;
-        }
-
-        .small {
-            font-size: small;
-        }
-
-        .normalizeLines {
-            line-height: 1;
-        }
-
-        .sender, .contactDetails {
-            line-height: 1.3;
-        }
-
-        .invoice-box td.maintd {
-            width: 100%;
-        }
-
-        .invoice-box td.itemstd {
-            min-width: 75px;
-        }
-
-				.information td {
-					padding-top: 7mm !important;
-				}
-
-				.footer {
-					bottom: 0px;
-					position: absolute;
-					line-height: 0.7;
-					padding: 0px;
-					margin: 0px;
-					margin-bottom: 5mm;
-				}
-
-				.main {
-					height: 100%;
-					line-height: inherit;
-				}
-
-
-		body {
-      padding: 10mm 15mm 10mm 15mm;
-		}
-
-    .invoice-box{
-        max-width: 21cm;
-				min-height: 29.7cm;
-        margin:auto;
-        padding:30px;
-        border:1px solid #ccc;
-        box-shadow:0 0 10px rgba(0, 0, 0, .15);
-        font-size:16px;
-        line-height:24px;
-        font-family:'Helvetica Neue', 'Helvetica', Helvetica, Arial, sans-serif;
-        color:#555;
-				position: relative;
-    }
-
-    .invoice-box table{
-        width:100%;
-        text-align:left;
-    }
-
-    .invoice-box table td{
-        padding:5px;
-        vertical-align:top;
-    }
-
-    .invoice-box table tr.top table td{
-        padding-bottom:20px;
-    }
-
-    .invoice-box table tr.top table td.title{
-        font-size:45px;
-        line-height:45px;
-        color:#333;
-        width: 100%;
-    }
-
-    .invoice-box table tr.information table td{
-        padding-bottom:40px;
-    }
-
-    .invoice-box table tr.heading td{
-        background:#ccc;
-        border-bottom:1px solid #bbb;
-        font-weight:bold;
-    }
-
-    .invoice-box table tr.details td{
-        padding-bottom:20px;
-    }
-
-    .invoice-box table tr.item td{
-        border-bottom:1px solid #ccc;
-    }
-
-    .invoice-box table tr.item.last td{
-        border-bottom:none;
-    }
-
-    .invoice-box table tr.total td {
-        border-top:2px solid #ccc;
-        font-weight:bold;
-    }
-
-    @media only screen and (max-width: 600px) {
-        .invoice-box table tr.top table td{
-            width:100%;
-            display:block;
-            text-align:center;
-        }
-
-        .invoice-box table tr.information table td{
-            width:100%;
-            display:block;
-            text-align:center;
-        }
-    }
+        <%- include style.css %>
     </style>
-</head>
+  </head>
+  <body>
+    <header class="clearfix">
 
-<body>
-    <div class="invoice-box">
-        <table class="main" cellpadding="0" cellspacing="0">
-            <tr class="top">
-                <td colspan="4">
-                    <table>
-                        <tr>
-                            <td class="title">
-                                <h3>Rechnung</h3>
-                            </td>
+      <h1>Rechnung</h1>
+      <div id="company" class="clearfix">
+          <p>
+              <div>Meik Specht</div>
+              <div>Kloppgasse 15<br />55411 Bingen</div>
+          </p>
+          <p>
+              <div><strong>Mobil:</strong><br />0151/12734259</div>
+              <div><strong>Mail:</strong><br /><a href="mailto:meik@schnitzelspecht.de">meik@schnitzelspecht.de</a></div>
+              <div><strong>Steuernummer:</strong><br />08 / 165 / 50673 GV/4</div>
+          </p>
+          <p>
+              <div><strong>Rechnungsnummer:</strong><br /><%= invoiceno %></div>
+              <div><strong>Datum:</strong><br /><%= invoicedate %></div>
+          </p>
+      </div>
+      <div id="project">
+          <%= client.name %><br>
+          <%= client.street1 %><br>
+          <% if (client.street2 && client.street2 !== "") { %><%= client.street2 %><br><% } %>
+          <%= client.zip %> <%= client.city %>
+      </div>
+    </header>
+    <main>
+      <table>
+        <thead>
+          <tr>
+            <th class="desc">Beschreibung</th>
+            <th>Preis</th>
+            <th>Menge</th>
+            <th>Total</th>
+          </tr>
+        </thead>
+        <tbody>
 
-                            <td class="left nowp normalizeLines" rowspan="2">
-                                <p class="sender">
-                                    Meik Specht<br>
-                                    Kloppgasse 15<br>
-                                    55411 Bingen
-                                </p>
+          <% var total = 0; for (var i=0; i<items.length; i++) { total += items[i].value*items[i].quantity; %>
+          <tr>
+            <td class="desc"><%= items[i].title %></td>
+            <td class="unit"><%= items[i].value %> &euro;</td>
+            <td class="qty"><%= items[i].quantity %></td>
+            <td class="total"><%= items[i].value * items[i].quantity %> &euro;</td>
+          </tr>
+          <% } %>
 
-                                <p class="contactDetails">
-                                    <strong class="small">Tel:</strong><br>
-                                    0151/12734259<br>
-                                    <strong class="small">Mail:</strong><br>
-                                    meik@schnitzelspecht.de<br>
-                                    <strong class="small">Steuernummer:</strong><br>
-                                    08 / 165 / 50673 GV/4
-                                </p>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td style="width: 100%;">
-                                <%= client.name %><br>
-                                <%= client.street1 %><br>
-                                <% if (client.street2 && client.street2 !== "") { %><%= client.street2 %><br><% } %>
-                                <%= client.zip %> <%= client.city %>
-
-                            </td>
-														<td></td>
-                        </tr>
-
-                    </table>
+          <tr>
+            <td colspan="3" class="grand total">Gesamt</td>
+            <td class="grand total"><%= total %> &euro;</td>
+          </tr>
+        </tbody>
+      </table>
+      <div id="notices">
+        <div class="notice">Als Kleinunternehmer bin ich von der Gesetzlichen Umsatzsteuer befreit!</div>
+      </div>
+    </main>
+    <footer>
+        <table class="footer">
+            <tr>
+                <td colspan="3">
+                    <strong class="small">Bankverbindung:</strong>
                 </td>
             </tr>
-
-            <tr class="information">
-                <td colspan="4">
-                    <table>
-                        <tr>
-                            <td colspan="2" style="width: 100%;"></td>
-
-
-                            <td style="min-width: 200px;" class="left nowp">
-                                <strong>Datum:</strong><br>
-                                <%= invoicedate %><br>
-
-                            </td>
-
-                            <td style="min-width: 200px;" class="right nowp">
-                                <strong>Rechnungsnummer:</strong><br>
-                                <%= invoiceno %>
-                            </td>
-                        </tr>
-                    </table>
-                </td>
-            </tr>
-
-
-            <tr class="heading">
-                <td class="maintd">
-                    Position
-                </td>
-
-                <td class="itemstd">
-                    Menge
-                </td>
-
-                <td class="itemstd">
-                    Preis
-                </td>
-
-                <td class="itemstd">
-                    Gesamt
-                </td>
-            </tr>
-
-            <% var total = 0; for (var i=0; i<items.length; i++) { total += items[i].value*items[i].quantity; %>
-            <tr class="item">
-                <td>
-                    <%= items[i].title %>
-                </td>
-
-                <td class="right">
-                    <%= items[i].quantity %>
-                </td>
-
-                <td class="right">
-                    <%= items[i].value %> &euro;
-                </td>
-
-                <td class="right">
-                    <%= items[i].value * items[i].quantity %> &euro;
-                </td>
-            </tr>
-            <% } %>
-
-            <tr class="total">
-                <td colspan="3">Gesamt</td>
-
-                <td class="right" >
-                   <%= total %> &euro;
-                </td>
+            <tr>
+            <tr class="small">
+                <td><strong>BIC: </strong>GENODE51KRE</td>
+                <td><strong>IBAN: </strong>DE93560900000101200848</td>
+                <td><strong>Bank: </strong>Volksbank Rhein-Nahe-Hunsr&uuml;ck</td>
             </tr>
         </table>
-				<table class="footer">
-					<tr>
-					<td colspan="3" cass="left">
-						<p>
-							<strong>Als Kleinunternehmer bin ich von der gesetzlichen Umsatzsteuerpflicht befreit!</strong>
-						</p>
-					<tr>
-						<td colspan="3" cass="left">
-							<strong class="small">Bankverbindung:</strong>
-						</td>
-					</tr>
-					<tr>
-					<tr class="small">
-						<td><strong>BIC: </strong>GENODE51KRE</td>
-						<td><strong>IBAN: </strong>DE93560900000101200848</td>
-						<td><strong>Bank: </strong>Volksbank Rhein-Nahe-Hunsr&uuml;ck</td>
-					</tr>
-				</table>
-    </div>
-</body>
+    </footer>
+  </body>
 </html>
