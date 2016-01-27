@@ -47,7 +47,7 @@ module.exports = function (template, config) {
         "border": {
           "top": "15mm",            // default is 0, units: mm, cm, in, px
           "right": "15mm",
-          "bottom": "15mm",
+          "bottom": "5mm",
           "left": "15mm"
         },
       };
