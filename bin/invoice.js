@@ -36,7 +36,7 @@ module.exports = function (template, config) {
 					return console.log(err);
 				}
 
-				opener(htmlFile).unref();
+				//opener(htmlFile).unref();
 			});
 		}
 
@@ -45,8 +45,7 @@ module.exports = function (template, config) {
 		pdf.create(html, options).toFile(filename, function(err, res) {
 			if (err) return console.log(err);
 
-			var child = opener(filename);
-			child.unref();
+			//opener(filename).unref();
 			console.log("test");
 			process.exit(0);
 		});
