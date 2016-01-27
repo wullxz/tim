@@ -45,8 +45,7 @@ module.exports = function (template, config) {
 		pdf.create(html, options).toFile(filename, function(err, res) {
 			if (err) return console.log(err);
 
-			//opener(filename).unref();
-			console.log("test");
+			opener(filename).unref();
 			process.exit(0);
 		});
 	}
