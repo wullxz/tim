@@ -425,7 +425,7 @@ module.exports = function (dbpath, debugoutput) {
 			return callback("You must supply a valid Client ID!");
 
 		var qry = new Qry();
-		qry.add("select inv.id, cli.name, cli.id cliid, pos.grandtotal");
+		qry.add("select inv.id, inv.date, cli.name, cli.id cliid, pos.grandtotal");
 		qry.add("	from");
 		qry.add("		Invoices inv");
 		qry.add("	inner join Clients cli on cli.id=inv.fk_Clients");

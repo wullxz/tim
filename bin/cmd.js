@@ -518,7 +518,7 @@ function proc(model, argv) {
 
 				//TODO: generate invoice
 				model.Invoice.populateItems(invoice, function (err, inv) {
-					invtpl.create(client, inv, new Date());
+					invtpl.create(client, inv);
 				});
 			});
 		});
