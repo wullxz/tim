@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 
-global['debug'] = true;
 
 // include packages
 var fs = require('fs');
@@ -23,6 +22,8 @@ for (var key in utils)
 var argv = minimist(process.argv.slice(2), {
 	alias: { v: 'verbose', h: 'help', c: 'client', s: 'short', t: 'title', d: 'description', f: 'filter', street: 'street1' }
 });
+
+global['debug'] = !(!argv.v);
 
 // open config
 var HOME = process.env.HOME || process.env.USERPROFILE;
@@ -222,6 +223,10 @@ function proc(model, argv) {
 			var filts = null;
 			if (argv.f) {
 				filts = JSON.parse(argv.f);
+        if (!argv.override-filter) {
+          filts.push(["archived", 0]);
+          filts.push(["fk_InvoicePos is null"]);
+        }
 			}
 			else {
 				filts = [
@@ -326,6 +331,34 @@ function proc(model, argv) {
 			});
 		}
 	}
+
+  // #### SUM ###
+  // summarize time taken
+  else if (verb === "sum") {
+
+    var client = argv.c || argv.s;
+
+    getSingleClient(function (err, client) {
+
+    filts = [
+      ["archived", 0],
+      ["fk_InvoicePos is null"],
+      ["clientid", client.id]
+    ];
+
+      model.Time.list(filts, function(err, rows) {
+        if (err) {
+          throw err;
+        }
+        var sum = moment.duration(0);
+
+        rows.forEach(function (row) {
+          sum.add(row.diff);
+        });
+        console.log("Duration for client " + client.name + ": " + formatDuration(sum));
+      });
+    });
+  }
 
   // #### COMMIT ###
   // commits tracked times or invoice positions

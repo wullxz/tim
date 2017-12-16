@@ -1,6 +1,8 @@
 module.exports = function() {
 	var printf = require('sprintf-js').sprintf;
-	var utils = {};
+  var moment = require('moment');
+  require('moment-duration-format');
+  var utils = {};
 
 	utils.debuglog = function(str) {
 		if (debug)
@@ -196,6 +198,10 @@ module.exports = function() {
 		});
 		return objects;
 	}
+
+  utils.formatDuration = function (duration) {
+    return duration.format('H [hours] mm [minutes] ss [seconds]');
+  }
 
 	return utils;
 }()
