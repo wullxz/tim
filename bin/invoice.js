@@ -10,7 +10,7 @@ module.exports = function (template, config) {
 			  return number;
 	}
 
-	invoice.create = function (client, invoice) {
+	invoice.create = function (client, invoice, doopen) {
 		var ejs = require('ejs');
 		var fs = require('fs');
 		var pdf = require('html-pdf');
@@ -18,6 +18,7 @@ module.exports = function (template, config) {
 		var printf = require('sprintf-js').sprintf;
 		var invoiceno = padToFour(invoice.id);
 		var opener = require('opener');
+    doopen = doopen !== false;
 
 		var filename = path.join(config.invoiceDir, (invoiceno + ".pdf"));
 
@@ -55,7 +56,9 @@ module.exports = function (template, config) {
       pdf.create(html, options).toFile(filename, function(err, res) {
         if (err) return console.log(err);
 
-        opener(filename).unref();
+        if (doopen) {
+          opener(filename).unref();
+        }
         process.exit(0);
       });
     });

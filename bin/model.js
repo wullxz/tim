@@ -220,6 +220,13 @@ module.exports = function (dbpath, debugoutput) {
 		});
 	}
 
+	model.Client.findById = function (id, callback) {
+    var st = db.prepare("SELECT * FROM Clients where id = $id");
+    st.get(id, function (err, row) {
+      callback(err, row);
+    });
+  }
+
 	/**
 	 * Time model
 	 */
@@ -440,6 +447,50 @@ module.exports = function (dbpath, debugoutput) {
 			callback(err, rows);
 		});
 	}
+
+  model.Invoice.listByDate = function (clientId, from, to, callback) {
+    var qry = new Qry();
+    qry.add("select inv.id, inv.date, cli.name name, cli.street1 street1, cli.street2 street2, cli.zip zip, cli.city city, cli.email email, cli.id cliid, pos.grandtotal");
+    qry.add(" from Invoices inv");
+    qry.add(" inner join Clients cli on cli.id=inv.fk_Clients");
+    qry.add(" inner join (select *, sum(total) grandtotal from InvoicePos group by fk_Invoices) pos on pos.fk_Invoices=inv.id");
+    qry.add(" where");
+    qry.add(" date >= $from");
+    qry.add(" and date <= $to;");
+
+    if (!to) {
+        to = new Date();
+    }
+    else {
+      to = new Date(to);
+    }
+    if (!from) {
+      from = new Date("1970-01-01 0:00");
+    }
+    else {
+      from = new Date(from);
+    }
+
+    var params = {$from: from, $to: to};
+    if (clientId) {
+      qry.add(" and cli.id=$cid");
+      params['$cid'] = clientId;
+    }
+
+    debuglog("Invoice list by Date Query:" + qry.qry() + "\n");
+    var st = db.prepare(qry.qry());
+    st.all(params, function (err, rows) {
+			if (err)
+				return callback("Error retreiving Invoices from Database:\n" + err);
+
+      var total = 0;
+      debuglog("Got " + rows.length + " invoices from Database!");
+      rows.forEach(function (item, idx, ar) {
+        total += item.grandtotal;
+      });
+      callback(err, rows, total);
+    });
+  }
 
 	model.Invoice.populateItems = function (invoice, callback) {
 		if (!invoice) {
