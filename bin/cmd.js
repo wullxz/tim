@@ -749,7 +749,7 @@ function usage(arg, invalid) {
 
   // help for add keyword
   usage['add'] = new Array();
-  usage['add'][0] = "\ttim add client -c|--client ClientName [--street1 value] [--street2 value] [--zip zip] [--city city] [--short shortkey]";
+  usage['add'][0] = "\ttim add client --name ClientName [--street1 value] [--street2 value] [--zip zip] [--city city] [--short shortkey]";
 
   // start keyword
   usage['start'] = new Array();

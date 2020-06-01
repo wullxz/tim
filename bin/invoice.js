@@ -33,7 +33,7 @@ module.exports = function (template, config) {
 
       if (debug) {
         var os = require('os');
-        var htmlFile = path.join(os.tmpDir(), "invoice.html");
+        var htmlFile = path.join(os.tmpdir(), "invoice.html");
         fs.writeFile(htmlFile, html, function (err) {
           if (err) {
             return console.log(err);

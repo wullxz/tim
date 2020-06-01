@@ -3,8 +3,174 @@
   <head>
     <meta charset="utf-8">
     <title>Example 1</title>
+    <link href="style.css" rel="stylesheet" type="text/css">
     <style>
-        <%- include style.css %>
+.clearfix:after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+a {
+  color: #5D6975;
+  text-decoration: underline;
+}
+
+body {
+  position: relative;
+  width: 21cm;
+  height: 29.7cm;
+  max-width: 21cm;
+  max-height: 29.7cm;
+  margin: 0 auto;
+  color: black;
+  background: #FFFFFF;
+  font-family: Arial, sans-serif;
+  font-size: 14px;
+  font-family: Arial;
+}
+
+header {
+  padding: 10px 0;
+  margin-bottom: 30px;
+}
+
+.small {
+  font-size: 0.8em;
+}
+
+#logo {
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+#logo img {
+  width: 90px;
+}
+
+h1 {
+  border-top: 1px solid  #5D6975;
+  border-bottom: 1px solid  #5D6975;
+  color: #5D6975;
+  font-size: 2.4em;
+  line-height: 1.4em;
+  font-weight: normal;
+  text-align: center;
+  margin: 0 0 20px 0;
+  background: url(dimension.png);
+}
+
+#project {
+  float: left;
+  padding-top: 2cm;
+  font-size: 1.2em;
+}
+
+#project span {
+  color: #5D6975;
+  text-align: right;
+  width: 52px;
+  margin-right: 10px;
+  display: inline-block;
+}
+
+#company {
+  float: right;
+  text-align: left;
+}
+
+#project div,
+#company div {
+  white-space: nowrap;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  border-spacing: 0;
+  margin-bottom: 20px;
+}
+
+table tr:nth-child(2n-1) td {
+  background: #F5F5F5;
+}
+
+table th,
+table td {
+  text-align: center;
+}
+
+table th {
+  padding: 5px 20px;
+  color: #5D6975;
+  border-bottom: 1px solid #C1CED9;
+  white-space: nowrap;
+  font-weight: normal;
+}
+
+table .service,
+table .desc,
+table .itemdesc {
+  text-align: left;
+}
+
+table td {
+  padding: 20px;
+  text-align: right;
+}
+
+table td.service,
+table td.desc {
+  vertical-align: top;
+}
+
+table td.unit,
+table td.qty,
+table td.total {
+  font-size: 1.2em;
+  min-width: 60px;
+}
+
+table td.grand {
+  border-top: 1px solid #5D6975;;
+}
+
+#notices .notice {
+  color: black;
+  font-size: 1.2em;
+}
+
+footer {
+  color: #5D6975;
+  width: 100%;
+  height: 70px;
+  border-top: 1px solid #C1CED9;
+  padding: 8px 0;
+	padding-bottom: 0px;
+  text-align: center;
+	vertical-align: bottom;
+}
+
+footer table.footer {
+	margin-bottom: 0px;
+}
+
+table.footer td {
+  line-height: 1;
+  text-align: left;
+  padding: 5px;
+  letter-spacing: 1px;
+}
+
+a, a:visited, a:active {
+  text-decoration: none;
+	color: black;
+}
+
+table td.itemdesc {
+	padding-top: 0px;
+	padding-left: 50px;
+}
     </style>
   </head>
   <body>
@@ -18,7 +184,7 @@
           </p>
           <p>
               <div><strong>Mobil:</strong><br />0151/12734259</div>
-              <div><strong>Mail:</strong><br /><a href="mailto:meik@schnitzelspecht.de">meik@schnitzelspecht.de</a></div>
+              <div><strong>Mail:</strong><br /><a href="mailto:meik@pc-specht.de">meik@pc-specht.de</a></div>
               <div><strong>Steuernummer:</strong><br />08 / 165 / 50673 GV/4</div>
           </p>
           <p>
@@ -55,7 +221,7 @@
 					<% if (items[i].description && typeof items[i].description === "string") { %>
 					<tr style="display: none;"><td colspan="4"></td></tr>
 					<tr class="itemdesc">
-						<td class="itemdesc"><%- escape(items[i].description).replace(/\\n/g, "<br />") %></td>
+						<td class="itemdesc"><%- (items[i].description).replace(/\\n/g, "<br />") %></td>
 						<td class="unit" colspan="3"></td>
 					</tr>
 					<% }} %>
